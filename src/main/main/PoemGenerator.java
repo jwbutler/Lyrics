@@ -28,6 +28,15 @@ public class PoemGenerator
     @Nonnull
     private final IText m_text;
 
+    private static final List<List<Integer>> METERS = ImmutableList.of(
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0),
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0),
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1)
+    );
+
+    public static final List<Character> RHYME_SCHEME = ImmutableList.of('A', 'B', 'A', 'B');
+
     public static void main(String[] args) throws IOException, InterruptedException
     {
         long t1 = System.currentTimeMillis();
@@ -41,7 +50,7 @@ public class PoemGenerator
         PoemGenerator poemGenerator = new PoemGenerator(dictionary, songLyrics);
         long t3 = System.currentTimeMillis();
         System.out.println("Parsed lyrics CSV in " + (t3 - t2) + " ms");
-        Poem poem = poemGenerator.generatePoem(ImmutableList.of(7, 8, 7, 8), ImmutableList.of('A', 'B', 'A', 'B'), 8);
+        Poem poem = poemGenerator.generatePoem(METERS, RHYME_SCHEME, 4);
         long t4 = System.currentTimeMillis();
         System.out.println("Generated poem in " + (t4 - t3) + " ms");
         System.out.println();
@@ -55,29 +64,30 @@ public class PoemGenerator
     }
 
     @Nonnull
-    public Poem generatePoem(@Nonnull List<Integer> lineLengths, @Nonnull List<Character> rhymeScheme, int numStanzas)
+    public Poem generatePoem(@Nonnull List<List<Integer>> lineMeters, @Nonnull List<Character> rhymeScheme, int numStanzas)
     {
-        Preconditions.checkArgument(lineLengths.size() > 0 && rhymeScheme.size() > 0);
-        Preconditions.checkArgument(lineLengths.size() == rhymeScheme.size());
+        Preconditions.checkArgument(lineMeters.size() > 0 && rhymeScheme.size() > 0);
+        Preconditions.checkArgument(lineMeters.size() == rhymeScheme.size());
         ImmutableList.Builder<List<Line>> stanzas = new ImmutableList.Builder<>();
         IntStream.range(0, numStanzas)
             .parallel()
             .forEach(i ->
             {
-                List<Line> stanza =_generateStanza(lineLengths, rhymeScheme);
+                List<Line> stanza =_generateStanza(lineMeters, rhymeScheme);
                 stanzas.add(stanza);
             });
         return new Poem(stanzas.build());
     }
 
     @Nonnull
-    private List<Line> _generateStanza(@Nonnull List<Integer> lineLengths, @Nonnull List<Character> rhymeScheme)
+    private List<Line> _generateStanza(@Nonnull List<List<Integer>> lineMeters, @Nonnull List<Character> rhymeScheme)
     {
+        Logging.debug("Generating stanza ...");
         List<Line> lines = new ArrayList<>();
-        while (lines.size() < lineLengths.size())
+        while (lines.size() < lineMeters.size())
         {
             lines.clear();
-            for (int i = 0; i < lineLengths.size(); i++)
+            for (int i = 0; i < lineMeters.size(); i++)
             {
                 ImmutableList.Builder<Line> builder = new ImmutableList.Builder<>();
                 for (int j = 0; j < i; j++)
@@ -90,11 +100,11 @@ public class PoemGenerator
                 List<Line> previousLines = builder.build();
                 if (previousLines.isEmpty())
                 {
-                    lines.add(m_text.getLine(lineLengths.get(i)));
+                    lines.add(m_text.getLine(lineMeters.get(i)));
                 }
                 else
                 {
-                    @CheckForNull Line rhymingLine = m_text.getLine(previousLines, lineLengths.get(i));
+                    @CheckForNull Line rhymingLine = m_text.getLine(previousLines, lineMeters.get(i));
                     if (rhymingLine == null)
                     {
                         // throw out this stanza and start fresh
@@ -107,7 +117,7 @@ public class PoemGenerator
                 }
             }
         }
-        Logging.debug("Generated stanza");
+        Logging.debug("... Generated stanza");
         return ImmutableList.copyOf(lines);
     }
 }

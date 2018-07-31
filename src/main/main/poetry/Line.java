@@ -28,7 +28,7 @@ public class Line
     public Line(@Nonnull String string, @Nonnull IDictionary dictionary) throws Exception
     {
         m_words = ImmutableList.copyOf(Stream.of(string.split("\\s+"))
-            .map(StringUtils::sanitize)
+            .map(StringUtils::alphanumericOnly)
             .collect(Collectors.toList()));
         m_syllables = _computeSyllables(m_words, dictionary);
     }

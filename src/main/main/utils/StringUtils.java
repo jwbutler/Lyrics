@@ -8,7 +8,12 @@ import javax.annotation.Nonnull;
  */
 public class StringUtils {
   @Nonnull
-  public static String sanitize(@Nonnull String input) {
+  public static String alphanumericOnly(@Nonnull String input) {
     return input.replaceAll("[^a-zA-Z0-9]", "");
+  }
+
+  @Nonnull
+  public static String alphabeticOnly(@Nonnull String input) {
+    return input.replaceAll("[^a-zA-Z]", "");
   }
 }

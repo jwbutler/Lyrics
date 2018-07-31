@@ -13,12 +13,10 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -29,26 +27,26 @@ public class CMUDictionary implements IDictionary
 {
     private static final String SPLIT_PATTERN = "  ";
 
-    private final SortedMap<String, List<Pronunciation>> m_words;
+    private final Map<String, List<Pronunciation>> m_words;
     private final Map<String, Set<String>> m_rhymes;
     private final List<String> m_sortedKeys;
 
     public CMUDictionary() throws IOException
     {
-        SortedMap<String, List<Pronunciation>> words = Files.lines(FileUtils.getPath("cmudict.0.7a"))
+        Map<String, List<Pronunciation>> words = Files.lines(FileUtils.getPath("cmudict.0.7a"))
             .parallel()
             .map(CMUDictionary::_parseLine)
             .filter(p -> p != null && p.getSecond() != null)
             .collect(Collectors.groupingBy(
                 Pair::getFirst,
-                TreeMap::new,
+                ConcurrentHashMap::new,
                 Collectors.mapping(
                     Pair::getSecond,
                     Collectors.toList()
                 )
             ));
         m_words = words;
-        m_rhymes = new HashMap<>();
+        m_rhymes = new ConcurrentHashMap<>();
         m_sortedKeys = ImmutableList.copyOf(words.keySet());
     }
 
@@ -70,16 +68,26 @@ public class CMUDictionary implements IDictionary
     @Nonnull
     public Set<String> getRhymes(@Nonnull String key)
     {
-        return m_rhymes.computeIfAbsent(key.toUpperCase(), this::_getRhymes);
+        if (!m_rhymes.containsKey(key.toUpperCase()))
+        {
+            _computeRhymes(key);
+        }
+        return m_rhymes.getOrDefault(key.toUpperCase(), Collections.emptySet());
     }
 
-    @Nonnull
-    private Set<String> _getRhymes(@Nonnull String key)
+    private void _computeRhymes(@Nonnull String key)
     {
-        return m_words.keySet()
+        Set<String> rhymes = m_words.keySet()
             .parallelStream()
             .filter(p -> RhymeUtils.anyPronunciationsRhyme(key, p, this))
             .collect(Collectors.toSet());
+
+        for (String word : rhymes)
+        {
+            m_rhymes.put(word.toUpperCase(), rhymes.stream()
+                .filter(r -> !r.equals(word))
+                .collect(Collectors.toSet()));
+        }
     }
 
     /**
@@ -94,7 +102,7 @@ public class CMUDictionary implements IDictionary
             if (_isValidLine(line))
             {
                 int index = line.indexOf(SPLIT_PATTERN);
-                String key = StringUtils.sanitize(line.substring(0, index));
+                String key = StringUtils.alphabeticOnly(line.substring(0, index));
 
                 return Pair.of(key, new Pronunciation(line.substring(index + 2, line.length())));
             }

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
+import main.utils.MeterUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -11,6 +12,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -29,24 +32,24 @@ public class PoetryText implements IText
     @Nonnull
     private final List<Line> m_lines;
     @Nonnull
-    private final Map<Integer, List<Line>> m_linesBySyllableCount;
+    private final Map<List<Integer>, List<Line>> m_linesByMeter;
 
     public PoetryText(@Nonnull IDictionary dictionary, @Nonnull List<Line> lines)
     {
         m_dictionary = dictionary;
         m_lines = ImmutableList.copyOf(lines);
-        m_linesBySyllableCount = new HashMap<>();
+        m_linesByMeter = new ConcurrentHashMap<>();
     }
 
     @Nonnull
     @Override
-    public Line getLine(int numSyllables)
+    public Line getLine(@Nonnull List<Integer> meter)
     {
-        List<Line> matchingLines = _getLinesBySyllableCount(numSyllables);
+        List<Line> matchingLines = _getLinesByMeter(meter);
 
         if (matchingLines.isEmpty())
         {
-            throw new IllegalStateException("No lines found with length " + numSyllables);
+            throw new IllegalStateException("No lines found for meter " + meter);
         }
 
         ThreadLocalRandom RNG = ThreadLocalRandom.current();
@@ -55,17 +58,24 @@ public class PoetryText implements IText
     }
 
     @Override
-    public Line getLine(@Nonnull List<Line> rhymingLines, int numSyllables)
+    public Line getLine(@Nonnull List<Line> rhymingLines, @Nonnull List<Integer> meter)
     {
         Preconditions.checkArgument(!rhymingLines.isEmpty());
 
         Line firstLine = rhymingLines.get(0);
         String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
-        List<String> rhymingWords = ImmutableList.copyOf(m_dictionary.getRhymes(lastWordOfFirstLine));
+        Set<String> rhymingWords = m_dictionary.getRhymes(lastWordOfFirstLine);
 
-        List<Line> lines = _getLinesBySyllableCount(numSyllables);
+        if (rhymingWords.isEmpty())
+        {
+            return null;
+        }
 
-        List<Integer> lineIndices = IntStream.range(0, lines.size()).parallel().boxed().collect(Collectors.toList());
+        List<Line> lines = _getLinesByMeter(meter);
+
+        List<Integer> lineIndices = IntStream.range(0, lines.size())
+            .parallel()
+            .boxed().collect(Collectors.toList());
 
         Collections.shuffle(lineIndices);
 
@@ -74,10 +84,10 @@ public class PoetryText implements IText
         {
             Line line = lines.get(i);
             String lastWord = line.getWords().get(line.getWords().size() - 1);
-            boolean rhymesWith = rhymingWords.contains(lastWord);
-            boolean differentLastWord = rhymingLines.stream()
+            boolean rhymesWith = rhymingWords.contains(lastWord.toUpperCase());
+            boolean differentLastWord = rhymingLines.parallelStream()
                 .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
-            boolean matchesPreviousLine = rhymingLines.stream()
+            boolean matchesPreviousLine = rhymingLines.parallelStream()
                 .anyMatch(line::equals);
 
             if (rhymesWith && !matchesPreviousLine && differentLastWord)
@@ -89,12 +99,13 @@ public class PoetryText implements IText
     }
 
     @Nonnull
-    private List<Line> _getLinesBySyllableCount(int numSyllables)
+    private List<Line> _getLinesByMeter(@Nonnull List<Integer> meter)
     {
-        return m_linesBySyllableCount.computeIfAbsent(numSyllables, n ->
+        return m_linesByMeter.computeIfAbsent(meter, m ->
         {
             return m_lines.parallelStream()
-                .filter(line -> line.getMeter().size() == numSyllables)
+                .distinct()
+                .filter(line -> MeterUtils.fitsMeter(m, line.getMeter()))
                 .collect(Collectors.toList());
         });
     }
