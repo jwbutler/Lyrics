@@ -5,7 +5,7 @@ package main;
  * @since July 2018
  */
 public class Logging {
-  private static boolean DEBUG_ENABLED = true;
+  private static boolean DEBUG_ENABLED = false;
   public static void debug(String s) {
     if (DEBUG_ENABLED) {
       System.out.println(s);

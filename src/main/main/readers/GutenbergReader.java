@@ -1,11 +1,12 @@
 package main.readers;
 
 import com.google.common.collect.ImmutableList;
+import main.Logging;
 import main.utils.FileUtils;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.utils.StringUtils;
-import main.Text;
+import main.texts.PoetryText;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -35,7 +36,7 @@ public class GutenbergReader
      * @param lastInvalidLine Ignore all lines before this, if specified.
      */
     @Nonnull
-    public Text readFile(@Nonnull String filename, @CheckForNull String lastInvalidLine) throws IOException
+    public PoetryText readFile(@Nonnull String filename, @CheckForNull String lastInvalidLine) throws IOException
     {
         List<String> allLines = Files.lines(FileUtils.getPath(filename)).map(String::trim).collect(Collectors.toList());
 
@@ -52,25 +53,27 @@ public class GutenbergReader
             lines = allLines;
         }
 
-        String fullText = lines.stream().collect(Collectors.joining(" "));
-
-        List<String> wordList = Stream.of(fullText.split("\\s+")).map(StringUtils::sanitize).map(String::toUpperCase).collect(Collectors.toList());
-
-        List<Line> mappedLines = lines.stream().map(s ->
-        {
-            try
+        List<Line> mappedLines = lines.stream()
+            .map(s ->
             {
-                return new Line(s, m_dictionary);
-            } catch (Exception e)
-            {
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-        return new Text(mappedLines, wordList);
+                try
+                {
+                    return new Line(s, m_dictionary);
+                }
+                catch (Exception e)
+                {
+                    Logging.debug(e.getMessage(), e);
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+        return new PoetryText(m_dictionary, mappedLines);
     }
 
     @Nonnull
-    public Text readFile(@Nonnull String filename) throws IOException
+    public PoetryText readFile(@Nonnull String filename) throws IOException
     {
         return readFile(filename, null);
     }

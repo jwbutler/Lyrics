@@ -1,6 +1,6 @@
 package main.readers;
 
-import main.Text;
+import main.texts.PoetryText;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.utils.FileUtils;
@@ -37,12 +37,7 @@ public class SongLyricsReader
     }
 
     @Nonnull
-    public Text readFile(@Nonnull String filename) throws IOException
-    {
-        return readFile(filename, 1.0);
-    }
-    @Nonnull
-    public Text readFile(@Nonnull String filename, double keepPercentage) throws IOException
+    public PoetryText readFile(@Nonnull String filename) throws IOException
     {
         BufferedReader reader = Files.newBufferedReader(FileUtils.getPath(filename));
         CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord());
@@ -66,14 +61,8 @@ public class SongLyricsReader
                 }
             })
             .filter(Objects::nonNull)
-            .filter(unused -> RNG.nextDouble() < keepPercentage)
             .collect(Collectors.toList());
 
-        List<String> words = lines.stream()
-            .map(Line::getWords)
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
-
-        return new Text(lines, words);
+        return new PoetryText(m_dictionary, lines);
     }
 }

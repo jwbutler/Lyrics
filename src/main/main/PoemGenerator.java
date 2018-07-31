@@ -7,17 +7,14 @@ import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.poetry.Poem;
 import main.readers.SongLyricsReader;
+import main.texts.IText;
+import main.texts.PoetryText;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -29,9 +26,7 @@ public class PoemGenerator
     @Nonnull
     private final IDictionary m_dictionary;
     @Nonnull
-    private final List<Text> m_texts;
-    @Nonnull
-    private final Map<Integer, List<Line>> m_linesBySyllableCount;
+    private final IText m_text;
 
     public static void main(String[] args) throws IOException, InterruptedException
     {
@@ -41,32 +36,22 @@ public class PoemGenerator
         SongLyricsReader songLyricsReader = new SongLyricsReader(dictionary);
         long t2 = System.currentTimeMillis();
         System.out.println("Created dictionary in " + (t2 - t1) + " ms");
-        Text songLyrics = songLyricsReader.readFile("songdata.csv");
+        PoetryText songLyrics = songLyricsReader.readFile("songdata.csv");
 
-        PoemGenerator poemGenerator = new PoemGenerator(dictionary, ImmutableList.of(
-            // reader.readFile("hymnal.txt", "----------"),
-            // reader.readFile("paradiselost.txt", "  BOOK I."),
-            songLyrics
-        ));
+        PoemGenerator poemGenerator = new PoemGenerator(dictionary, songLyrics);
         long t3 = System.currentTimeMillis();
         System.out.println("Parsed lyrics CSV in " + (t3 - t2) + " ms");
-        /*Poem poem = poemGenerator.generatePoem(
-            ImmutableList.of(6, 6, 8, 6, 4, 6, 6, 8, 6, 4),
-            ImmutableList.of('A', 'A', 'B', 'A', 'C', 'D', 'D', 'E', 'D', 'C'),
-            5
-        );*/
-        Poem poem = poemGenerator.generatePoem(ImmutableList.of(9, 9, 3, 10), ImmutableList.of('A', 'A', 'B', 'C'), 20);
+        Poem poem = poemGenerator.generatePoem(ImmutableList.of(7, 8, 7, 8), ImmutableList.of('A', 'B', 'A', 'B'), 8);
         long t4 = System.currentTimeMillis();
         System.out.println("Generated poem in " + (t4 - t3) + " ms");
         System.out.println();
         System.out.println(poem.toString());
     }
 
-    public PoemGenerator(@Nonnull IDictionary dictionary, @Nonnull List<Text> texts)
+    public PoemGenerator(@Nonnull IDictionary dictionary, @Nonnull IText text)
     {
         m_dictionary = dictionary;
-        m_texts = texts;
-        m_linesBySyllableCount = new HashMap<>();
+        m_text = text;
     }
 
     @Nonnull
@@ -105,11 +90,11 @@ public class PoemGenerator
                 List<Line> previousLines = builder.build();
                 if (previousLines.isEmpty())
                 {
-                    lines.add(_generateFreshLine(lineLengths.get(i)));
+                    lines.add(m_text.getLine(lineLengths.get(i)));
                 }
                 else
                 {
-                    @CheckForNull Line rhymingLine = _generateRhymingLine(previousLines, lineLengths.get(i));
+                    @CheckForNull Line rhymingLine = m_text.getLine(previousLines, lineLengths.get(i));
                     if (rhymingLine == null)
                     {
                         // throw out this stanza and start fresh
@@ -124,70 +109,5 @@ public class PoemGenerator
         }
         Logging.debug("Generated stanza");
         return ImmutableList.copyOf(lines);
-    }
-
-    @Nonnull
-    private Line _generateFreshLine(int numSyllables)
-    {
-        List<Line> matchingLines = _getLinesBySyllableCount(numSyllables);
-
-        if (matchingLines.isEmpty())
-        {
-            throw new IllegalStateException("No lines found with length " + numSyllables);
-        }
-
-
-        ThreadLocalRandom RNG = ThreadLocalRandom.current();
-        int index = RNG.nextInt(matchingLines.size());
-        return matchingLines.get(index);
-    }
-
-    @Nonnull
-    private List<Line> _getLinesBySyllableCount(int numSyllables)
-    {
-        return m_linesBySyllableCount.computeIfAbsent(numSyllables, n ->
-        {
-            return m_texts.parallelStream()
-                .map(Text::getLines)
-                .flatMap(List::parallelStream)
-                .filter(line -> line.getMeter().size() == numSyllables)
-                .collect(Collectors.toList());
-        });
-    }
-
-    @CheckForNull
-    private Line _generateRhymingLine(@Nonnull List<Line> previousLines, int numSyllables)
-    {
-        Preconditions.checkArgument(!previousLines.isEmpty());
-
-        Line firstLine = previousLines.get(0);
-        String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
-        List<String> rhymingWords = ImmutableList.copyOf(m_dictionary.getRhymes(lastWordOfFirstLine));
-
-        List<Line> lines = _getLinesBySyllableCount(numSyllables);
-
-        List<Integer> lineIndices = IntStream.range(0, lines.size())
-            .parallel()
-            .boxed()
-            .collect(Collectors.toList());
-
-        Collections.shuffle(lineIndices);
-
-        // Switch to a sequential loop so we don't have to evaluate every line
-        for (int i : lineIndices)
-        {
-            Line line = lines.get(i);
-            String lastWord = line.getWords().get(line.getWords().size() - 1);
-            boolean rhymesWith = rhymingWords.contains(lastWord);
-            boolean differentLastWord = previousLines.stream()
-                .noneMatch(previousLine -> lastWord.equals(previousLine.getWords().get(previousLine.getWords().size() - 1)));
-            boolean matchesPreviousLine = previousLines.stream()
-                .anyMatch(line::equals);
-            if (rhymesWith && !matchesPreviousLine && differentLastWord)
-            {
-                return line;
-            }
-        }
-        return null;
     }
 }
