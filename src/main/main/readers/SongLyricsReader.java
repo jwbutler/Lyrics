@@ -52,8 +52,7 @@ public class SongLyricsReader
             {
                 try
                 {
-                    Line parsedLine = new Line(line, m_dictionary);
-                    return parsedLine;
+                    return new Line(line, m_dictionary);
                 }
                 catch (Exception e)
                 {
@@ -61,6 +60,7 @@ public class SongLyricsReader
                 }
             })
             .filter(Objects::nonNull)
+            .distinct()
             .collect(Collectors.toList());
 
         return new PoetryText(m_dictionary, lines);

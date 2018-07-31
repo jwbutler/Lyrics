@@ -49,7 +49,9 @@ public class Line
     @Nonnull
     public List<Integer> getMeter()
     {
-        return m_syllables.stream().map(Syllable::getEmphasis).collect(Collectors.toList());
+        return m_syllables.stream()
+            .map(Syllable::getEmphasis)
+            .collect(Collectors.toList());
     }
 
     /**

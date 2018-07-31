@@ -13,6 +13,10 @@ public class MeterUtils
     {
     }
 
+    /**
+     * The only criterion here is that if the meter calls for an unstressed syllable,
+     * the corresponding syllable in the line must also be unstressed.
+     */
     public static boolean fitsMeter(@Nonnull List<Integer> targetMeter, @Nonnull List<Integer> lineMeter)
     {
         if (lineMeter.size() != targetMeter.size())
@@ -22,7 +26,7 @@ public class MeterUtils
 
         for (int i = 0; i < targetMeter.size(); i++)
         {
-            if (lineMeter.get(i) == 1 && targetMeter.get(i) == 0)
+            if (lineMeter.get(i) > 0 && targetMeter.get(i) == 0)
             {
                 return false;
             }

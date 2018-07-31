@@ -5,7 +5,6 @@ import main.utils.FileUtils;
 import main.Logging;
 import main.Pair;
 import main.linguistics.Pronunciation;
-import main.utils.RhymeUtils;
 import main.utils.StringUtils;
 
 import javax.annotation.CheckForNull;
@@ -28,8 +27,6 @@ public class CMUDictionary implements IDictionary
     private static final String SPLIT_PATTERN = "  ";
 
     private final Map<String, List<Pronunciation>> m_words;
-    private final Map<String, Set<String>> m_rhymes;
-    private final List<String> m_sortedKeys;
 
     public CMUDictionary() throws IOException
     {
@@ -46,48 +43,18 @@ public class CMUDictionary implements IDictionary
                 )
             ));
         m_words = words;
-        m_rhymes = new ConcurrentHashMap<>();
-        m_sortedKeys = ImmutableList.copyOf(words.keySet());
     }
 
     @Nonnull
-    public List<String> getWords()
+    public Set<String> getWords()
     {
-        return m_sortedKeys;
+        return m_words.keySet();
     }
 
     @Nonnull
     public List<Pronunciation> getPronunciations(@Nonnull String key)
     {
         return m_words.getOrDefault(key.toUpperCase(), Collections.emptyList());
-    }
-
-    /**
-     * Returns an empty set if no matches are found
-     */
-    @Nonnull
-    public Set<String> getRhymes(@Nonnull String key)
-    {
-        if (!m_rhymes.containsKey(key.toUpperCase()))
-        {
-            _computeRhymes(key);
-        }
-        return m_rhymes.getOrDefault(key.toUpperCase(), Collections.emptySet());
-    }
-
-    private void _computeRhymes(@Nonnull String key)
-    {
-        Set<String> rhymes = m_words.keySet()
-            .parallelStream()
-            .filter(p -> RhymeUtils.anyPronunciationsRhyme(key, p, this))
-            .collect(Collectors.toSet());
-
-        for (String word : rhymes)
-        {
-            m_rhymes.put(word.toUpperCase(), rhymes.stream()
-                .filter(r -> !r.equals(word))
-                .collect(Collectors.toSet()));
-        }
     }
 
     /**

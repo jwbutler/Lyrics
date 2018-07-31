@@ -11,7 +11,6 @@ import java.util.Set;
  * @since July 2018
  */
 public interface IDictionary {
-  @Nonnull List<String> getWords();
+  @Nonnull Set<String> getWords();
   @Nonnull List<Pronunciation> getPronunciations(@Nonnull String word);
-  @Nonnull Set<String> getRhymes(@Nonnull String key);
 }

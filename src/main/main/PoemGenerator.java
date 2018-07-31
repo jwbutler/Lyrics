@@ -29,10 +29,10 @@ public class PoemGenerator
     private final IText m_text;
 
     private static final List<List<Integer>> METERS = ImmutableList.of(
-        ImmutableList.of(0, 1, 0, 1, 0, 1, 0),
-        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
-        ImmutableList.of(0, 1, 0, 1, 0, 1, 0),
-        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1)
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+        ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1)
     );
 
     public static final List<Character> RHYME_SCHEME = ImmutableList.of('A', 'B', 'A', 'B');
@@ -50,7 +50,7 @@ public class PoemGenerator
         PoemGenerator poemGenerator = new PoemGenerator(dictionary, songLyrics);
         long t3 = System.currentTimeMillis();
         System.out.println("Parsed lyrics CSV in " + (t3 - t2) + " ms");
-        Poem poem = poemGenerator.generatePoem(METERS, RHYME_SCHEME, 4);
+        Poem poem = poemGenerator.generatePoem(METERS, RHYME_SCHEME, 8);
         long t4 = System.currentTimeMillis();
         System.out.println("Generated poem in " + (t4 - t3) + " ms");
         System.out.println();
@@ -117,7 +117,7 @@ public class PoemGenerator
                 }
             }
         }
-        Logging.debug("... Generated stanza");
+        Logging.info("... Generated stanza");
         return ImmutableList.copyOf(lines);
     }
 }
