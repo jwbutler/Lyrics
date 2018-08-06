@@ -1,7 +1,10 @@
 package main.utils;
 
+import main.linguistics.Syllable;
+
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author jbutler
@@ -32,5 +35,13 @@ public class MeterUtils
             }
         }
         return true;
+    }
+
+    @Nonnull
+    public static List<Integer> getMeterForSyllables(@Nonnull List<Syllable> syllables)
+    {
+        return syllables.stream()
+            .map(Syllable::getEmphasis)
+            .collect(Collectors.toList());
     }
 }

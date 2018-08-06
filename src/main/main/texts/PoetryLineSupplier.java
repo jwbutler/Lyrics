@@ -7,11 +7,13 @@ import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.utils.MeterUtils;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,7 +27,7 @@ import java.util.stream.IntStream;
  * @since July 2018
  */
 @Immutable
-public class PoetryText implements IText
+public class PoetryLineSupplier implements ILineSupplier
 {
     @Nonnull
     private final IDictionary m_dictionary;
@@ -33,10 +35,13 @@ public class PoetryText implements IText
     private final List<Line> m_lines;
     @Nonnull
     private final RhymeMap m_rhymeMap;
+    /**
+     * a map of (meter -> (last word -> lines))
+     */
     @Nonnull
     private final Map<List<Integer>, Map<String, List<Line>>> m_linesByMeter;
 
-    public PoetryText(@Nonnull IDictionary dictionary, @Nonnull List<Line> lines)
+    public PoetryLineSupplier(@Nonnull IDictionary dictionary, @Nonnull List<Line> lines)
     {
         m_dictionary = dictionary;
         m_lines = ImmutableList.copyOf(lines);
@@ -44,8 +49,8 @@ public class PoetryText implements IText
         m_linesByMeter = new ConcurrentHashMap<>();
     }
 
-    @Nonnull
     @Override
+    @CheckForNull
     public Line getLine(@Nonnull List<Integer> meter)
     {
         Map<String, List<Line>> matchingLineMap = _getLinesByMeter(meter);
@@ -60,17 +65,23 @@ public class PoetryText implements IText
             .flatMap(List::stream)
             .collect(Collectors.toList());
 
-        ThreadLocalRandom RNG = ThreadLocalRandom.current();
+        if (lines.isEmpty())
+        {
+            return null;
+        }
+
+        Random RNG = ThreadLocalRandom.current();
         int index = RNG.nextInt(lines.size());
         return lines.get(index);
     }
 
     @Override
-    public Line getLine(@Nonnull List<Line> rhymingLines, @Nonnull List<Integer> meter)
+    @CheckForNull
+    public Line getLine(@Nonnull List<Line> previousLines, @Nonnull List<Integer> meter)
     {
-        Preconditions.checkArgument(!rhymingLines.isEmpty());
+        Preconditions.checkArgument(!previousLines.isEmpty());
 
-        Line firstLine = rhymingLines.get(0);
+        Line firstLine = previousLines.get(0);
         String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
         Set<String> rhymingWords = m_rhymeMap.getRhymes(lastWordOfFirstLine);
 
@@ -100,13 +111,12 @@ public class PoetryText implements IText
         {
             Line line = matchingLines.get(i);
             String lastWord = line.getWords().get(line.getWords().size() - 1);
-            boolean rhymesWith = rhymingWords.contains(lastWord.toUpperCase());
-            boolean differentLastWord = rhymingLines.parallelStream()
+            boolean differentLastWord = previousLines.parallelStream()
                 .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
-            boolean matchesPreviousLine = rhymingLines.parallelStream()
+            boolean matchesPreviousLine = previousLines.parallelStream()
                 .anyMatch(line::equals);
 
-            if (rhymesWith && !matchesPreviousLine && differentLastWord)
+            if (!matchesPreviousLine && differentLastWord)
             {
                 return line;
             }
@@ -115,7 +125,7 @@ public class PoetryText implements IText
     }
 
     /**
-     * @return a map of (last word in the line -> line)
+     * @return a map of (last word -> lines)
      */
     @Nonnull
     private Map<String, List<Line>> _getLinesByMeter(@Nonnull List<Integer> meter)

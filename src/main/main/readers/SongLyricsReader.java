@@ -1,6 +1,6 @@
 package main.readers;
 
-import main.texts.PoetryText;
+import main.texts.PoetryLineSupplier;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.utils.FileUtils;
@@ -37,7 +37,7 @@ public class SongLyricsReader
     }
 
     @Nonnull
-    public PoetryText readFile(@Nonnull String filename) throws IOException
+    public PoetryLineSupplier readFile(@Nonnull String filename) throws IOException
     {
         BufferedReader reader = Files.newBufferedReader(FileUtils.getPath(filename));
         CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord());
@@ -63,6 +63,6 @@ public class SongLyricsReader
             .distinct()
             .collect(Collectors.toList());
 
-        return new PoetryText(m_dictionary, lines);
+        return new PoetryLineSupplier(m_dictionary, lines);
     }
 }

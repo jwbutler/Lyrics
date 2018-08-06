@@ -6,8 +6,8 @@ import main.dictionaries.CMUDictionary;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.readers.SongLyricsReader;
-import main.texts.IText;
-import main.texts.PoetryText;
+import main.texts.ILineSupplier;
+import main.texts.PoetryLineSupplier;
 import main.utils.MeterUtils;
 
 import javax.annotation.Nonnull;
@@ -23,7 +23,7 @@ public class MeterTester
     @Nonnull
     private final IDictionary m_dictionary;
     @Nonnull
-    private final IText m_text;
+    private final ILineSupplier m_text;
 
     public static void main(String[] args) throws IOException
     {
@@ -33,13 +33,13 @@ public class MeterTester
         SongLyricsReader songLyricsReader = new SongLyricsReader(dictionary);
         long t2 = System.currentTimeMillis();
         System.out.println("Created dictionary in " + (t2 - t1) + " ms");
-        PoetryText songLyrics = songLyricsReader.readFile("songdata.csv");
+        PoetryLineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
 
         MeterTester meterTester = new MeterTester(dictionary, songLyrics);
         meterTester.doTest(ImmutableList.of(0,1,0,1,0,1,0,1,0,1));
     }
 
-    public MeterTester(@Nonnull IDictionary dictionary, @Nonnull IText text)
+    public MeterTester(@Nonnull IDictionary dictionary, @Nonnull ILineSupplier text)
     {
         m_dictionary = dictionary;
         m_text = text;

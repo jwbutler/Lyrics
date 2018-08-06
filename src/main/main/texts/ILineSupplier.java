@@ -10,8 +10,8 @@ import java.util.List;
  * @author jbutler
  * @since July 2018
  */
-public interface IText
+public interface ILineSupplier
 {
-    @Nonnull Line getLine(@Nonnull List<Integer> meter);
+    @CheckForNull Line getLine(@Nonnull List<Integer> meter);
     @CheckForNull Line getLine(@Nonnull List<Line> rhymingLines, @Nonnull List<Integer> meter);
 }

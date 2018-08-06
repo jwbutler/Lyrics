@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import main.dictionaries.IDictionary;
 import main.linguistics.Pronunciation;
 import main.linguistics.Syllable;
+import main.utils.MeterUtils;
 import main.utils.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,7 @@ public class Line
     private final List<Syllable> m_syllables;
 
     /**
+     * @param string A space-separated list of words
      * @throws Exception
      */
     public Line(@Nonnull String string, @Nonnull IDictionary dictionary) throws Exception
@@ -49,9 +51,7 @@ public class Line
     @Nonnull
     public List<Integer> getMeter()
     {
-        return m_syllables.stream()
-            .map(Syllable::getEmphasis)
-            .collect(Collectors.toList());
+        return MeterUtils.getMeterForSyllables(m_syllables);
     }
 
     /**
@@ -82,7 +82,8 @@ public class Line
 
         Line line = (Line) o;
 
-        if (!m_words.equals(line.m_words))
+        if (!m_words.stream().map(String::toUpperCase).collect(Collectors.toList())
+            .equals(line.m_words.stream().map(String::toUpperCase).collect(Collectors.toList())))
         {
             return false;
         }
