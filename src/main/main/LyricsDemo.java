@@ -5,12 +5,16 @@ import main.dictionaries.CMUDictionary;
 import main.poetry.Poem;
 import main.readers.GutenbergReader;
 import main.readers.SongLyricsReader;
-import main.songs.Song;
+import main.songs.SongPattern;
+import main.songs.StanzaPattern;
+import main.texts.GutenbergText;
 import main.texts.PoetryLineSupplier;
 import main.texts.ProseLineSupplier;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * @author jbutler
@@ -18,42 +22,46 @@ import java.io.IOException;
  */
 public class LyricsDemo
 {
-    private static int NUM_VERSES = 4;
     public static void main(String[] args) throws IOException, InterruptedException
     {
         CMUDictionary dictionary = new CMUDictionary();
         GutenbergReader gutenbergReader = new GutenbergReader(dictionary);
         SongLyricsReader songLyricsReader = new SongLyricsReader(dictionary);
 
-        //ProseLineSupplier prideAndPrejudice = gutenbergReader.readProseFile("prideandprejudice.txt", "Produced by Anonymous Volunteers");
-        ProseLineSupplier critiqueOfPureReason = gutenbergReader.readProseFile("critiqueofpurereason.txt", "Produced by Charles Aldarondo and David Widger");
         PoetryLineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
 
         PoemGenerator poemGenerator = new PoemGenerator(dictionary, ImmutableList.of(
-            //prideAndPrejudice,
-            critiqueOfPureReason,
+            GutenbergText.ARISTOTLE_POETICS.getLineSupplier(gutenbergReader),
+            GutenbergText.KANT_CRITIQUE_OF_PURE_REASON.getLineSupplier(gutenbergReader),
             songLyrics
         ));
 
-        for (int i = 0; i < NUM_VERSES; i++)
-        {
-            writeSong(poemGenerator, Song.ORGAN_4_VERSE);
-            System.out.println();
-            writeSong(poemGenerator, Song.ORGAN_4_VERSE);
-            System.out.println();
-            writeSong(poemGenerator, Song.ORGAN_4_CHORUS);
-            System.out.println();
-            writeSong(poemGenerator, Song.ORGAN_4_CHORUS);
-            if (i < (NUM_VERSES - 1))
-            {
-                System.out.println();
-            }
-        }
+        _writeSong(poemGenerator, new SongPattern(ImmutableList.of(
+            StanzaPattern.RIDE_ON_TO_GLORY_VERSE_1,
+            StanzaPattern.RIDE_ON_TO_GLORY_VERSE_2
+        ), 8));
     }
 
-    public static void writeSong(@Nonnull PoemGenerator poemGenerator, @Nonnull Song song) throws IOException
+    private static void _writeSong(@Nonnull PoemGenerator poemGenerator, @Nonnull SongPattern songPattern)
     {
-        Poem poem = poemGenerator.generatePoem(song.getMeter(), song.getRhymeScheme(), 1);
-        System.out.println(poem.toString());
+        IntStream.range(0, songPattern.getNumVerses()).parallel().forEach(i ->
+        {
+            ImmutableList.Builder<Poem> builder = new ImmutableList.Builder<>();
+            for (int j = 0; j < songPattern.getStanzaPatterns().size(); j++)
+            {
+                StanzaPattern stanza = songPattern.getStanzaPatterns().get(j);
+                Poem poem = poemGenerator.generatePoem(stanza.getMeter(), stanza.getRhymeScheme(), 1);
+                builder.add(poem);
+            }
+            List<Poem> stanzas = builder.build();
+            synchronized (LyricsDemo.class)
+            {
+                for (Poem poem : stanzas)
+                {
+                    System.out.println(poem);
+                    System.out.println();
+                }
+            }
+        });
     }
 }

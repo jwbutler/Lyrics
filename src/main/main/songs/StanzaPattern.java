@@ -9,7 +9,7 @@ import java.util.List;
  * @author jbutler
  * @since July 2018
  */
-public enum Song
+public enum StanzaPattern
 {
     EERIE_VILLAIN(
         ImmutableList.of(
@@ -67,12 +67,48 @@ public enum Song
         ),
         ImmutableList.of('A', 'B')
     ),
-    ;
+    IAMBIC_PENTAMETER_ABAB(
+        ImmutableList.of(
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'A', 'B')
+    ),
+    TRITONE_BLUES(
+        ImmutableList.of(
+            ImmutableList.of(0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1),
+            ImmutableList.of(0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1),
+            ImmutableList.of(0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1),
+            ImmutableList.of(0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1),
+            ImmutableList.of(1, 0, 0, 1, 1, 1)
+        ),
+        ImmutableList.of('A', 'A', 'B', 'B', 'C')
+    ),
+    RIDE_ON_TO_GLORY_VERSE_1(
+        ImmutableList.of(
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0)
+        ),
+        ImmutableList.of('A', 'B', 'A', 'B')
+    ),
+    RIDE_ON_TO_GLORY_VERSE_2(
+        ImmutableList.of(
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'A', 'B')
+    );
 
     private List<List<Integer>> m_meter;
     private List<Character> m_rhymeScheme;
 
-    Song(@Nonnull List<List<Integer>> meter, @Nonnull List<Character> rhymeScheme)
+    StanzaPattern(@Nonnull List<List<Integer>> meter, @Nonnull List<Character> rhymeScheme)
     {
         m_meter = meter;
         m_rhymeScheme = rhymeScheme;

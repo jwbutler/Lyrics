@@ -7,7 +7,6 @@ import main.utils.FileUtils;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
 import main.texts.PoetryLineSupplier;
-import main.utils.StringUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -17,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * @author jbutler
@@ -35,82 +33,115 @@ public class GutenbergReader
     }
 
     /**
-     * @param lastInvalidLine Ignore all lines before this, if specified.
+     * @param lastLineBeforeStart Ignore all lines before this, if specified.
      */
     @Nonnull
-    public PoetryLineSupplier readPoetryFile(@Nonnull String filename, @CheckForNull String lastInvalidLine) throws IOException
+    public PoetryLineSupplier readPoetryFile(
+        @Nonnull String filename,
+        @CheckForNull String lastLineBeforeStart,
+        @CheckForNull String firstLineAfterEnd
+    )
     {
-        List<String> allLines = Files.lines(FileUtils.getPath(filename))
-            .map(String::trim)
-            .collect(Collectors.toList());
-
-        List<String> lines;
-
-        if (lastInvalidLine != null)
+        try
         {
-            int index = IntStream.range(0, allLines.size())
-                .filter(i -> allLines.get(i).equals(lastInvalidLine))
-                .findFirst().orElse(0);
+            List<String> allLines = Files.lines(FileUtils.getPath(filename))
+                .map(String::trim)
+                .collect(Collectors.toList());
 
-            lines = ImmutableList.copyOf(allLines.subList(index + 1, allLines.size()));
+            List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
+
+            List<Line> mappedLines = lines.stream()
+                .map(s ->
+                {
+                    try
+                    {
+                        return new Line(s, m_dictionary);
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.debug(e.getMessage(), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+            return new PoetryLineSupplier(m_dictionary, mappedLines);
         }
-        else
+        catch (IOException e)
         {
-            lines = allLines;
+            // Not much point continuing execution
+            throw new RuntimeException(e);
         }
-
-        List<Line> mappedLines = lines.stream()
-            .map(s ->
-            {
-                try
-                {
-                    return new Line(s, m_dictionary);
-                }
-                catch (Exception e)
-                {
-                    Logging.debug(e.getMessage(), e);
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-        return new PoetryLineSupplier(m_dictionary, mappedLines);
     }
 
     @Nonnull
-    public PoetryLineSupplier readPoetryFile(@Nonnull String filename) throws IOException
+    private List<String> _filterLines(@Nonnull List<String> allLines, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
     {
-        return readPoetryFile(filename, null);
+        if (lastLineBeforeStart == null && firstLineAfterEnd == null)
+        {
+            return allLines;
+        }
+
+        int firstLineIndex = 0;
+        int lastLineIndex = allLines.size() - 1;
+        if (lastLineBeforeStart != null)
+        {
+            for (int i = 0; i < allLines.size(); i++)
+            {
+                if (allLines.get(i).equals(lastLineBeforeStart))
+                {
+                    firstLineIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (firstLineAfterEnd != null)
+        {
+            for (int i = allLines.size() - 1; i >= 0; i--)
+            {
+                if (allLines.get(i).equals(firstLineAfterEnd))
+                {
+                    lastLineIndex = i;
+                    break;
+                }
+            }
+        }
+
+        return ImmutableList.copyOf(allLines.subList(firstLineIndex, lastLineIndex + 1));
     }
 
-    public ProseLineSupplier readProseFile(@Nonnull String filename, @CheckForNull String lastInvalidLine) throws IOException
+    @Nonnull
+    public PoetryLineSupplier readPoetryFile(@Nonnull String filename)
     {
-        List<String> allLines = Files.lines(FileUtils.getPath(filename)).map(String::trim).collect(Collectors.toList());
+        return readPoetryFile(filename, null, null);
+    }
 
-        List<String> lines;
-
-        if (lastInvalidLine != null)
+    @Nonnull
+    public ProseLineSupplier readProseFile(@Nonnull String filename, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
+    {
+        try
         {
-            int index = IntStream.range(0, allLines.size())
-                .filter(i -> allLines.get(i).equals(lastInvalidLine))
-                .findFirst().orElse(0);
+            List<String> allLines = Files.lines(FileUtils.getPath(filename))
+                .map(String::trim)
+                .collect(Collectors.toList());
 
-            lines = ImmutableList.copyOf(allLines.subList(index + 1, allLines.size()));
-        }
-        else
-        {
-            lines = allLines;
-        }
+            List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
-        List<String> sentences = Arrays.stream(
-            lines.stream()
+            List<String> sentences = Arrays.stream(lines.stream()
                 .collect(Collectors.joining(" "))
-                .split(SENTENCE_ENDING_PUNCTUATION)
-        )
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .collect(Collectors.toList());
-        return new ProseLineSupplier(m_dictionary, sentences);
+                .split(SENTENCE_ENDING_PUNCTUATION))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+            return new ProseLineSupplier(m_dictionary, sentences);
+        }
+        catch (IOException e)
+        {
+            // Not much point continuing execution
+            throw new RuntimeException(e);
+        }
     }
 }

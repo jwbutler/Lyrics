@@ -29,9 +29,18 @@ public class MeterUtils
 
         for (int i = 0; i < targetMeter.size(); i++)
         {
+            // Don't allow a strong syllable in a weak position
             if (lineMeter.get(i) > 0 && targetMeter.get(i) == 0)
             {
                 return false;
+            }
+            // Additionally, don't allow a weak syllable in a strong position at the end of the line
+            if (i == targetMeter.size() - 1)
+            {
+                if (lineMeter.get(i) == 0 && targetMeter.get(i) > 0)
+                {
+                    return false;
+                }
             }
         }
         return true;

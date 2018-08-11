@@ -28,21 +28,22 @@ public class CMUDictionary implements IDictionary
 
     private final Map<String, List<Pronunciation>> m_words;
 
-    public CMUDictionary() throws IOException
+    public CMUDictionary()
     {
-        Map<String, List<Pronunciation>> words = Files.lines(FileUtils.getPath("cmudict.0.7a"))
-            .parallel()
-            .map(CMUDictionary::_parseLine)
-            .filter(p -> p != null && p.getSecond() != null)
-            .collect(Collectors.groupingBy(
-                Pair::getFirst,
-                ConcurrentHashMap::new,
-                Collectors.mapping(
-                    Pair::getSecond,
-                    Collectors.toList()
-                )
-            ));
-        m_words = words;
+        try
+        {
+            Map<String, List<Pronunciation>> words = Files.lines(FileUtils.getPath("cmudict.0.7a"))
+                .parallel()
+                .map(CMUDictionary::_parseLine)
+                .filter(p -> p != null && p.getSecond() != null)
+                .collect(Collectors.groupingBy(Pair::getFirst, ConcurrentHashMap::new, Collectors.mapping(Pair::getSecond, Collectors.toList())));
+            m_words = words;
+        }
+        catch (IOException e)
+        {
+            // Not much point continuing execution
+            throw new RuntimeException(e);
+        }
     }
 
     @Nonnull

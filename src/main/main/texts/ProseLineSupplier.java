@@ -59,11 +59,12 @@ public class ProseLineSupplier implements ILineSupplier
         List<Line> lines = m_linesByMeter.getOrDefault(meter, Collections.emptyMap())
             .values()
             .parallelStream()
-            .flatMap(List::stream)
+            .flatMap(List::parallelStream)
             .collect(Collectors.toList());
 
         if (lines.isEmpty())
         {
+            // bail out, we're not gonna finish this poem
             throw new RuntimeException("No lines found for meter " + meter);
         }
 
@@ -148,58 +149,41 @@ public class ProseLineSupplier implements ILineSupplier
             // compute line starting from the first word
             for (int i = 0; i < sentenceAsLine.getWords().size(); i++)
             {
-                // subList's second parameter is exclusive, so this is up to and including i
-                List<String> words = sentenceAsLine.getWords().subList(0, i + 1);
-
-                // if any words aren't in the dictionary, give up
-                if (words.stream().anyMatch(w -> m_dictionary.getPronunciations(w).isEmpty()))
+                for (int j = i + 1; j < sentenceAsLine.getWords().size(); j++)
                 {
-                    break;
-                }
+                    // subList's second parameter is exclusive, so this is up to and including j
+                    List<String> words = sentenceAsLine.getWords()
+                        .subList(i, j + 1);
 
-                List<Syllable> syllables = words.stream()
-                    .map(m_dictionary::getPronunciations)
-                    .map(list -> list.get(0))
-                    .map(Pronunciation::getSyllables)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
+                    // if any words aren't in the dictionary, give up
+                    if (words.stream()
+                        .anyMatch(w -> m_dictionary.getPronunciations(w)
+                            .isEmpty()))
+                    {
+                        break;
+                    }
 
-                if (MeterUtils.fitsMeter(meter, MeterUtils.getMeterForSyllables(syllables)))
-                {
-                    builder.add(new Line(words.stream()
-                        .collect(Collectors.joining(" ")), m_dictionary));
-                    break;
-                }
-            }
+                    List<Syllable> syllables = words.stream()
+                        .map(m_dictionary::getPronunciations)
+                        .map(list -> list.get(0))
+                        .map(Pronunciation::getSyllables)
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
 
-            // compute line ending on the last word
-            for (int i = sentenceAsLine.getWords().size() - 1; i >= 0; i--)
-            {
-                // subList's second parameter is exclusive, so this goes up to the last element
-                List<String> words = sentenceAsLine.getWords().subList(i, sentenceAsLine.getWords().size());
-
-                // if any words aren't in the dictionary, give up
-                if (words.stream().anyMatch(w -> m_dictionary.getPronunciations(w).isEmpty()))
-                {
-                    break;
-                }
-
-                List<Syllable> syllables = words.stream()
-                    .map(m_dictionary::getPronunciations)
-                    .map(list -> list.get(0))
-                    .map(Pronunciation::getSyllables)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
-
-                if (MeterUtils.fitsMeter(meter, MeterUtils.getMeterForSyllables(syllables)))
-                {
-                    builder.add(new Line(words.stream().collect(Collectors.joining(" ")), m_dictionary));
-                    break;
+                    if (MeterUtils.fitsMeter(meter, MeterUtils.getMeterForSyllables(syllables)))
+                    {
+                        builder.add(new Line(
+                            words.stream().collect(Collectors.joining(" ")),
+                            m_dictionary)
+                        );
+                        break;
+                    }
                 }
             }
         }
         catch (Exception e)
         {
+            // just skip it and continue
             Logging.debug("Error computing lines: ", e);
         }
         return builder.build();
