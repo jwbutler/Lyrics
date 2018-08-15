@@ -61,8 +61,8 @@ public class PoetryLineSupplier implements ILineSupplier
         }
 
         List<Line> lines = matchingLineMap.values()
-            .stream()
-            .flatMap(List::stream)
+            .parallelStream()
+            .flatMap(List::parallelStream)
             .collect(Collectors.toList());
 
         if (lines.isEmpty())

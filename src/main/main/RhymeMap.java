@@ -1,12 +1,9 @@
 package main;
 
 import main.dictionaries.IDictionary;
-import main.poetry.Line;
 import main.utils.RhymeUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,21 +16,17 @@ import java.util.stream.Collectors;
 public class RhymeMap
 {
     @Nonnull
-    private final Map<String, Set<String>> m_stringToRhymes;
-    @Nonnull
     private final IDictionary m_dictionary;
     @Nonnull
-    private final Map<List<Integer>, Map<String, List<Line>>> m_linesByMeter;
+    private final Map<String, Set<String>> m_stringToRhymes;
 
     public RhymeMap(@Nonnull IDictionary dictionary)
     {
         m_dictionary = dictionary;
         m_stringToRhymes = new ConcurrentHashMap<>();
-        m_linesByMeter = new ConcurrentHashMap<>();
     }
 
     /**
-     *
      * Returns an empty set if no matches are found
      */
     @Nonnull
@@ -52,6 +45,7 @@ public class RhymeMap
     /**
      * Returns dictionary words, presumably all-caps.
      * Note that this *includes* the key, for storage reasons; we'll filter it out
+     * on retrieval
      */
     private void _computeRhymes(@Nonnull String key)
     {

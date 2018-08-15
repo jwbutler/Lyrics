@@ -6,6 +6,7 @@ import main.linguistics.Pronunciation;
 import main.linguistics.Syllable;
 import main.utils.MeterUtils;
 import main.utils.StringUtils;
+import sun.reflect.annotation.ExceptionProxy;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -55,11 +56,20 @@ public class Line
     }
 
     /**
-     * @throws ArrayIndexOutOfBoundsException if a word doesn't have a pronunciation in the dictionary
+     * @throws IllegalStateException if a word doesn't have a pronunciation in the dictionary
      */
     @Nonnull
-    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull IDictionary dictionary)
+    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull IDictionary dictionary) throws Exception
     {
+        List<List<Pronunciation>> pronunciations = words.stream()
+            .map(dictionary::getPronunciations)
+            .collect(Collectors.toList());
+
+        if (pronunciations.stream().anyMatch(List::isEmpty))
+        {
+            throw new IllegalStateException();
+        }
+
         return words.stream()
             .map(dictionary::getPronunciations)
             .map(list -> list.get(0))

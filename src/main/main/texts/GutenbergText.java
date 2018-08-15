@@ -14,12 +14,12 @@ public enum GutenbergText
         "Produced by Anonymous Volunteers",
         "End of the Project Gutenberg EBook of Pride and Prejudice, by Jane Austen"
     ),
-    ARISTOTLE_POETICS(
+    KANT_CRITIQUE_OF_PURE_REASON(
         "critiqueofpurereason.txt",
         "Produced by Charles Aldarondo and David Widger",
         "End of the Project Gutenberg EBook of The Critique of Pure Reason, by Immanuel Kant"
     ),
-    KANT_CRITIQUE_OF_PURE_REASON(
+    ARISTOTLE_POETICS(
         "aristotle_poetics.txt",
         "Produced by Eric Eldred",
         "End of the Project Gutenberg EBook of The Poetics, by Aristotle"

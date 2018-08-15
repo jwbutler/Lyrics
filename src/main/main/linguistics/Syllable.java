@@ -6,6 +6,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +64,7 @@ public class Syllable {
       .map(Phoneme::valueOf)
       .collect(Collectors.collectingAndThen(
         Collectors.toList(),
-        p -> new Syllable(p, emphasis)
+        p -> new Syllable(p, Optional.ofNullable(emphasis).orElse(0))
       ));
   }
 

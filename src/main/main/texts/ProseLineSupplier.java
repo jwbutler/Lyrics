@@ -98,7 +98,7 @@ public class ProseLineSupplier implements ILineSupplier
             .parallelStream()
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
-            .flatMap(List::stream)
+            .flatMap(List::parallelStream)
             .collect(Collectors.toList());
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
@@ -131,7 +131,7 @@ public class ProseLineSupplier implements ILineSupplier
     {
         return m_sentences.parallelStream()
             .map(sentence -> _computeLinesForSentenceAndMeter(sentence, meter))
-            .flatMap(List::stream)
+            .flatMap(List::parallelStream)
             .collect(Collectors.groupingBy(line -> line.getWords().get(line.getWords().size() - 1).toUpperCase()));
     }
 

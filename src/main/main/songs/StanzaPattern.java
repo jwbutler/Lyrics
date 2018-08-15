@@ -103,6 +103,48 @@ public enum StanzaPattern
             ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1)
         ),
         ImmutableList.of('A', 'B', 'A', 'B')
+    ),
+    F5(
+        ImmutableList.of(
+            ImmutableList.of(1, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(1, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'A', 'B')
+    ),
+    SAPPY_VERSE_1(
+        ImmutableList.of(
+            ImmutableList.of(1, 0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(1, 1, 0, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'A')
+    ),
+    SAPPY_VERSE_2(
+        ImmutableList.of(
+            ImmutableList.of(0, 1, 0, 1, 1, 0, 1, 0, 1, 0),
+            ImmutableList.of(0, 1, 0, 1, 1, 0, 1, 0, 1, 0)
+        ),
+        ImmutableList.of('A', 'A')
+    ),
+    SAPPY_CHORUS(
+        ImmutableList.of(
+            ImmutableList.of(1, 0, 1, 1, 0)
+        ),
+        ImmutableList.of('A')
+    ),
+    DEC_30_68_E(
+        ImmutableList.of(
+            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(1, 0, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(1, 0, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'C', 'D', 'E', 'C')
     );
 
     private List<List<Integer>> m_meter;

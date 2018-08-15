@@ -23,46 +23,53 @@ import java.util.stream.Collectors;
  * https://www.kaggle.com/mousehead/songlyrics#songdata.csv
  *
  * @author jbutler
- * @since
+ * @since July 2018
  */
 public class SongLyricsReader
 {
-    private static final Random RNG = new Random();
-
     @Nonnull
     private final IDictionary m_dictionary;
 
-    public SongLyricsReader(@Nonnull IDictionary dictionary) {
+    public SongLyricsReader(@Nonnull IDictionary dictionary)
+    {
         m_dictionary = dictionary;
     }
 
     @Nonnull
-    public PoetryLineSupplier readFile(@Nonnull String filename) throws IOException
+    public PoetryLineSupplier readFile(@Nonnull String filename)
     {
-        BufferedReader reader = Files.newBufferedReader(FileUtils.getPath(filename));
-        CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord());
-        List<CSVRecord> records = parser.getRecords();
+        try
+        {
+            BufferedReader reader = Files.newBufferedReader(FileUtils.getPath(filename));
+            CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord());
+            List<CSVRecord> records = parser.getRecords();
 
-        List<Line> lines = records.parallelStream()
-            .map(r -> r.get(3))
-            .map(lyrics -> lyrics.split("\\s*\n\\s*"))
-            .flatMap(Arrays::stream)
-            .parallel()
-            .map(line ->
-            {
-                try
+            List<Line> lines = records.parallelStream()
+                .map(r -> r.get(3))
+                .map(lyrics -> lyrics.split("\\s*\n\\s*"))
+                .flatMap(Arrays::stream)
+                .parallel()
+                .map(line ->
                 {
-                    return new Line(line, m_dictionary);
-                }
-                catch (Exception e)
-                {
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .distinct()
-            .collect(Collectors.toList());
+                    try
+                    {
+                        return new Line(line, m_dictionary);
+                    }
+                    catch (Exception e)
+                    {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
 
-        return new PoetryLineSupplier(m_dictionary, lines);
+            return new PoetryLineSupplier(m_dictionary, lines);
+        }
+        catch (IOException e)
+        {
+            // Not much point in continuing
+            throw new RuntimeException(e);
+        }
     }
 }

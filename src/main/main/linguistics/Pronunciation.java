@@ -27,20 +27,12 @@ import java.util.stream.Collectors;
  */
 public class Pronunciation
 {
-    private final List<Phoneme> m_phonemes;
     private final List<Syllable> m_syllables;
 
     public Pronunciation(@Nonnull String spaceSeparatedPhonemes)
     {
         List<Pair<Phoneme, Integer>> phonemesWithEmphasis = Arrays.stream(spaceSeparatedPhonemes.split(" ")).map(Phoneme::getPhonemeWithEmphasis).collect(Collectors.toList());
-        m_phonemes = phonemesWithEmphasis.stream().map(Pair::getFirst).collect(Collectors.toList());
         m_syllables = _computeSyllables(phonemesWithEmphasis);
-    }
-
-    @Nonnull
-    public List<Phoneme> getPhonemes()
-    {
-        return m_phonemes;
     }
 
     @Nonnull

@@ -42,7 +42,7 @@ public class PoemGenerator
             .parallel()
             .forEach(i ->
             {
-                List<Line> stanza =_generateStanza(lineMeters, rhymeScheme);
+                List<Line> stanza = _generateStanza(lineMeters, rhymeScheme);
                 stanzas.add(stanza);
             });
         return new Poem(stanzas.build());
