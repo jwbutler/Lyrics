@@ -1,5 +1,6 @@
 package main.readers;
 
+import main.Logging;
 import main.texts.PoetryLineSupplier;
 import main.dictionaries.IDictionary;
 import main.poetry.Line;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -38,13 +40,16 @@ public class SongLyricsReader
     @Nonnull
     public PoetryLineSupplier readFile(@Nonnull String filename)
     {
-        try
-        {
+        try (
             BufferedReader reader = Files.newBufferedReader(FileUtils.getPath(filename));
-            CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord());
-            List<CSVRecord> records = parser.getRecords();
+            CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord())
+        )
+        {
+            long t1 = System.currentTimeMillis();
+            AtomicInteger numErrors = new AtomicInteger(0);
 
-            List<Line> lines = records.parallelStream()
+            List<Line> lines = parser.getRecords()
+                .parallelStream()
                 .map(r -> r.get(3))
                 .map(lyrics -> lyrics.split("\\s*\n\\s*"))
                 .flatMap(Arrays::stream)
@@ -57,6 +62,8 @@ public class SongLyricsReader
                     }
                     catch (Exception e)
                     {
+                        Logging.debug(e.getMessage(), e);
+                        numErrors.incrementAndGet();
                         return null;
                     }
                 })
@@ -64,6 +71,8 @@ public class SongLyricsReader
                 .distinct()
                 .collect(Collectors.toList());
 
+            long t2 = System.currentTimeMillis();
+            Logging.info("SongLyricsReader - Read " + lines.size() + " lines in " + (t2-t1) + " ms with " + numErrors.get() + " errors");
             return new PoetryLineSupplier(m_dictionary, lines);
         }
         catch (IOException e)

@@ -116,7 +116,7 @@ public class ProseLineSupplier implements ILineSupplier
             boolean differentLastWord = previousLines.parallelStream()
                 .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
             boolean matchesPreviousLine = previousLines.parallelStream()
-                .anyMatch(line::equals);
+                .anyMatch(line::matches);
 
             if (!matchesPreviousLine && differentLastWord)
             {

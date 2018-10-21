@@ -7,6 +7,7 @@ import main.linguistics.Syllable;
 import main.dictionaries.IDictionary;
 
 import javax.annotation.Nonnull;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -36,9 +37,15 @@ public class RhymeUtils
             // Ignore initial consonants if this is the first syllable.
             if (i == (numSyllablesToMatch - 1))
             {
-                return _removeInitialConsonants(firstSyllable).equals(_removeInitialConsonants(secondSyllable));
+                if (!rhymesWith(
+                    _removeInitialConsonants(firstSyllable),
+                    _removeInitialConsonants(secondSyllable)
+                ))
+                {
+                    return false;
+                }
             }
-            else if (!firstSyllable.equals(secondSyllable))
+            else if (!rhymesWith(firstSyllable, secondSyllable))
             {
                 return false;
             }
@@ -46,6 +53,40 @@ public class RhymeUtils
         return true;
     }
 
+    public static boolean rhymesWith(@Nonnull Syllable firstSyllable, @Nonnull Syllable secondSyllable)
+    {
+        return rhymesWith(firstSyllable.getPhonemes(), secondSyllable.getPhonemes());
+    }
+
+    public static boolean rhymesWith(@Nonnull List<Phoneme> firstPhonemes, @Nonnull List<Phoneme> secondPhonemes)
+    {
+        if (firstPhonemes.equals(secondPhonemes))
+        {
+            return true;
+        }
+
+        if (stripFinalS(firstPhonemes).equals(stripFinalS(secondPhonemes)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * TODO move me?
+     * @param phonemes
+     * @return
+     */
+    @Nonnull
+    public static List<Phoneme> stripFinalS(@Nonnull List<Phoneme> phonemes)
+    {
+        if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.get(phonemes.size() - 1)))
+        {
+            return ImmutableList.copyOf(phonemes.subList(0, phonemes.size() - 1));
+        }
+        return ImmutableList.copyOf(phonemes);
+    }
 
     @Nonnull
     private static List<Phoneme> _removeInitialConsonants(@Nonnull Syllable syllable)

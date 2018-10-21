@@ -65,9 +65,12 @@ public class Line
             .map(dictionary::getPronunciations)
             .collect(Collectors.toList());
 
-        if (pronunciations.stream().anyMatch(List::isEmpty))
+        for (int i = 0; i < words.size(); i++)
         {
-            throw new IllegalStateException();
+            if (pronunciations.get(i).isEmpty())
+            {
+                throw new IllegalStateException("No pronunciations found for " + words.get(i));
+            }
         }
 
         return words.stream()
@@ -78,20 +81,8 @@ public class Line
             .collect(Collectors.toList());
     }
 
-    @Override
-    public boolean equals(Object o)
+    public boolean matches(@Nonnull Line line)
     {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-
-        Line line = (Line) o;
-
         if (!m_words.stream().map(String::toUpperCase).collect(Collectors.toList())
             .equals(line.m_words.stream().map(String::toUpperCase).collect(Collectors.toList())))
         {

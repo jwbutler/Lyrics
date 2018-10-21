@@ -140,11 +140,38 @@ public enum StanzaPattern
             ImmutableList.of(1, 0, 1, 0, 1),
             ImmutableList.of(1, 0, 0, 1),
             ImmutableList.of(1, 0, 1, 0, 1),
-            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1),
             ImmutableList.of(1, 0, 0, 1),
             ImmutableList.of(1, 0, 1, 0, 1)
         ),
         ImmutableList.of('A', 'B', 'C', 'D', 'E', 'C')
+    ),
+    DEC_30_68_E_VAR1(
+        ImmutableList.of(
+            ImmutableList.of(1, 0, 1, 0, 1, 1, 0, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1, 1, 0, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'C', 'B')
+    ),
+    DEC_30_68_E_VAR2(
+        ImmutableList.of(
+            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(1, 0, 0, 1, 1, 0, 1, 0, 1),
+            ImmutableList.of(0, 1, 0, 1),
+            ImmutableList.of(1, 0, 0, 1, 1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'C', 'B')
+    ),
+    JESUS_KING_OF_GLORY(
+        ImmutableList.of(
+            ImmutableList.of(1, 0, 1, 0, 1, 0),
+            ImmutableList.of(1, 0, 1, 0, 1),
+            ImmutableList.of(1, 0, 1, 0, 1, 0),
+            ImmutableList.of(1, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'A', 'B')
     );
 
     private List<List<Integer>> m_meter;
