@@ -107,12 +107,6 @@ public class GutenbergReader
     }
 
     @Nonnull
-    public LineSupplier readPoetryFile(@Nonnull String filename)
-    {
-        return readPoetryFile(filename, null, null);
-    }
-
-    @Nonnull
     public LineSupplier readProseFile(@Nonnull String filename, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
     {
         List<String> allLines = FileUtils.getBufferedReader(filename)
@@ -123,9 +117,7 @@ public class GutenbergReader
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
-        List<String> sentences = Arrays.stream(lines.stream()
-            .collect(Collectors.joining(" "))
-            .split(SENTENCE_ENDING_PUNCTUATION))
+        List<String> sentences = Arrays.stream(String.join(" ", lines).split(SENTENCE_ENDING_PUNCTUATION))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .collect(Collectors.toList());

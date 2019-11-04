@@ -1,9 +1,5 @@
 package lyrics.linguistics;
 
-import com.google.common.base.Preconditions;
-import lyrics.Logging;
-import lyrics.Pair;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.stream.Stream;
@@ -89,37 +85,9 @@ public enum Phoneme
     @CheckForNull
     public static Phoneme fromString(@Nonnull String value)
     {
-        return Stream.of(values()).filter(p -> p.name().equals(value)).findFirst().orElse(null);
-    }
-
-    /**
-     * @param string A representation of a phoneme, optionally including a number for emphasis
-     *               This is expected to consist only of capital letters and numbers
-     * @return a map of (phoneme -> emphasis), where emphasis is a nullable integer value from 0 (low) to 2 (high)
-     * @throws IllegalArgumentException if the string contains unexpected characters
-     *                                  or if it does not contain a phoneme value
-     */
-    @Nonnull
-    public static Pair<Phoneme, Emphasis> getPhonemeWithEmphasis(@Nonnull String string)
-    {
-        Preconditions.checkArgument(string.matches("^[A-Z0-9]*$"));
-        @CheckForNull Phoneme phoneme = Phoneme.fromString(string.replaceAll("[^A-Z]", ""));
-        if (phoneme == null)
-        {
-            throw new IllegalArgumentException(string + " did not contain a phoneme!");
-        }
-        @CheckForNull Emphasis emphasis = null;
-        if (string.matches(".*[0-9].*"))
-        {
-            try
-            {
-                emphasis = Emphasis.fromValue(Integer.valueOf(string.replaceAll("[A-Z]", "")));
-            }
-            catch (NumberFormatException e)
-            {
-                Logging.debug(e.getMessage(), e);
-            }
-        }
-        return Pair.of(phoneme, emphasis);
+        return Stream.of(values())
+            .filter(p -> p.name().equals(value))
+            .findFirst()
+            .orElse(null);
     }
 }

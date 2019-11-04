@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Reader interface intended to parse this file:
@@ -49,8 +50,7 @@ public class SongLyricsReader
             List<Line> lines = parser.getRecords()
                 .parallelStream()
                 .map(r -> r.get(3))
-                .map(lyrics -> lyrics.split("\\s*\n\\s*"))
-                .flatMap(Arrays::stream)
+                .flatMap(this::_splitToLines)
                 .parallel()
                 .map(line ->
                 {
@@ -78,5 +78,11 @@ public class SongLyricsReader
             // Not much point in continuing
             throw new RuntimeException(e);
         }
+    }
+
+    @Nonnull
+    private Stream<String> _splitToLines(@Nonnull String string)
+    {
+        return Arrays.stream(string.split("\\s*\n\\s*"));
     }
 }

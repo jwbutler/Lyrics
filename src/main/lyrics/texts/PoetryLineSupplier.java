@@ -30,8 +30,6 @@ import java.util.stream.IntStream;
 public class PoetryLineSupplier implements LineSupplier
 {
     @Nonnull
-    private final Dictionary m_dictionary;
-    @Nonnull
     private final List<Line> m_lines;
     @Nonnull
     private final RhymeMap m_rhymeMap;
@@ -43,9 +41,8 @@ public class PoetryLineSupplier implements LineSupplier
 
     public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull List<Line> lines)
     {
-        m_dictionary = dictionary;
         m_lines = ImmutableList.copyOf(lines);
-        m_rhymeMap = new RhymeMap(m_dictionary);
+        m_rhymeMap = new RhymeMap(dictionary);
         m_linesByMeter = new ConcurrentHashMap<>();
     }
 
@@ -64,11 +61,6 @@ public class PoetryLineSupplier implements LineSupplier
             .parallelStream()
             .flatMap(List::parallelStream)
             .collect(Collectors.toList());
-
-        if (lines.isEmpty())
-        {
-            return null;
-        }
 
         Random RNG = ThreadLocalRandom.current();
         int index = RNG.nextInt(lines.size());

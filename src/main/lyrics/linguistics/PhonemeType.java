@@ -6,17 +6,19 @@ package lyrics.linguistics;
  * @author jbutler
  * @since July 2018
  */
-public enum PhonemeType {
-  AFFRICATE,
-  ASPIRATE,
-  FRICATIVE,
-  LIQUID,
-  NASAL,
-  VOWEL,
-  SEMIVOWEL,
-  STOP;
+public enum PhonemeType
+{
+    AFFRICATE,
+    ASPIRATE,
+    FRICATIVE,
+    LIQUID,
+    NASAL,
+    VOWEL,
+    SEMIVOWEL,
+    STOP;
 
-  public boolean isVowel() {
-    return (this == VOWEL);
-  }
+    public boolean isVowel()
+    {
+        return (this == VOWEL);
+    }
 }
