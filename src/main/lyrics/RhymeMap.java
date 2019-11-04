@@ -1,6 +1,6 @@
 package lyrics;
 
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
 import lyrics.utils.RhymeUtils;
 
 import javax.annotation.Nonnull;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 public class RhymeMap
 {
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
     @Nonnull
     private final Map<String, Set<String>> m_stringToRhymes;
 
-    public RhymeMap(@Nonnull IDictionary dictionary)
+    public RhymeMap(@Nonnull Dictionary dictionary)
     {
         m_dictionary = dictionary;
         m_stringToRhymes = new ConcurrentHashMap<>();

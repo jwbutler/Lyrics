@@ -14,8 +14,11 @@ import java.util.stream.Collectors;
  */
 public class Poem
 {
-    List<List<Line>> m_stanzas;
-    private Pair<Integer, Integer> m_meter;
+    @Nonnull
+    private final List<List<Line>> m_stanzas;
+
+    @Nonnull
+    private final Pair<Integer, Integer> m_meter;
 
     public Poem(@Nonnull List<List<Line>> stanzas)
     {
@@ -24,8 +27,8 @@ public class Poem
         Preconditions.checkArgument(stanzas.stream().allMatch(stanza -> stanza.size() >= 2));
         m_stanzas = stanzas;
         m_meter = Pair.of(
-            stanzas.get(0).get(0).getMeter().size(),
-            stanzas.get(0).get(1).getMeter().size()
+            stanzas.get(0).get(0).getMeter().getNumSyllables(),
+            stanzas.get(0).get(1).getMeter().getNumSyllables()
         );
     }
 

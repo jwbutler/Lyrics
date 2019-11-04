@@ -2,7 +2,7 @@ package lyrics.readers;
 
 import lyrics.Logging;
 import lyrics.texts.PoetryLineSupplier;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
 import lyrics.poetry.Line;
 import lyrics.utils.FileUtils;
 import org.apache.commons.csv.CSVFormat;
@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 public class SongLyricsReader
 {
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
 
-    public SongLyricsReader(@Nonnull IDictionary dictionary)
+    public SongLyricsReader(@Nonnull Dictionary dictionary)
     {
         m_dictionary = dictionary;
     }

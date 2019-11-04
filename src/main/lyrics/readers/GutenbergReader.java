@@ -2,16 +2,15 @@ package lyrics.readers;
 
 import com.google.common.collect.ImmutableList;
 import lyrics.Logging;
+import lyrics.texts.LineSupplier;
 import lyrics.texts.ProseLineSupplier;
 import lyrics.utils.FileUtils;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
 import lyrics.poetry.Line;
 import lyrics.texts.PoetryLineSupplier;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -25,9 +24,9 @@ public class GutenbergReader
 {
     private static final String SENTENCE_ENDING_PUNCTUATION = "[\\.!\\?]";
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
 
-    public GutenbergReader(@Nonnull IDictionary dictionary)
+    public GutenbergReader(@Nonnull Dictionary dictionary)
     {
         m_dictionary = dictionary;
     }
@@ -36,7 +35,7 @@ public class GutenbergReader
      * @param lastLineBeforeStart Ignore all lines before this, if specified.
      */
     @Nonnull
-    public PoetryLineSupplier readPoetryFile(
+    public LineSupplier readPoetryFile(
         @Nonnull String filename,
         @CheckForNull String lastLineBeforeStart,
         @CheckForNull String firstLineAfterEnd
@@ -108,13 +107,13 @@ public class GutenbergReader
     }
 
     @Nonnull
-    public PoetryLineSupplier readPoetryFile(@Nonnull String filename)
+    public LineSupplier readPoetryFile(@Nonnull String filename)
     {
         return readPoetryFile(filename, null, null);
     }
 
     @Nonnull
-    public ProseLineSupplier readProseFile(@Nonnull String filename, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
+    public LineSupplier readProseFile(@Nonnull String filename, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
     {
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()

@@ -1,6 +1,7 @@
 package lyrics;
 
 import com.google.common.collect.ImmutableList;
+import lyrics.linguistics.Emphasis;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
 import org.testng.annotations.Test;
@@ -47,19 +48,18 @@ public class TestPronunciation
     // Creation
     word = new Pronunciation("K R IY0 EY1 SH AH0 N");
     expectedSyllables = ImmutableList.of(
-        Syllable.of("K R IY", 0),
-        Syllable.of("EY", 1),
-        Syllable.of("SH AH N", 0)
+        Syllable.of("K R IY", Emphasis.WEAK),
+        Syllable.of("EY", Emphasis.STRONG),
+        Syllable.of("SH AH N", Emphasis.WEAK)
     );
     assertEquals(word.getSyllables(), expectedSyllables);
 
     // Beings
     word = new Pronunciation("B IY1 IH0 NG Z");
     expectedSyllables = ImmutableList.of(
-        Syllable.of("B IY", 1),
-        Syllable.of("IH NG Z", 0)
+        Syllable.of("B IY", Emphasis.STRONG),
+        Syllable.of("IH NG Z", Emphasis.WEAK)
     );
     assertEquals(word.getSyllables(), expectedSyllables);
   }
-
 }

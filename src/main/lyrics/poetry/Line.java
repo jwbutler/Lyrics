@@ -1,10 +1,10 @@
 package lyrics.poetry;
 
 import com.google.common.collect.ImmutableList;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
-import lyrics.utils.MeterUtils;
+import lyrics.meter.Meter;
 import lyrics.utils.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -27,7 +27,7 @@ public class Line
      * @param string A space-separated list of words
      * @throws Exception
      */
-    public Line(@Nonnull String string, @Nonnull IDictionary dictionary) throws Exception
+    public Line(@Nonnull String string, @Nonnull Dictionary dictionary) throws Exception
     {
         m_words = ImmutableList.copyOf(Stream.of(string.split("\\s+"))
             .map(StringUtils::alphanumericOnly)
@@ -45,20 +45,20 @@ public class Line
     @Nonnull
     public String toString()
     {
-        return m_words.stream().collect(Collectors.joining(" "));
+        return String.join(" ", m_words);
     }
 
     @Nonnull
-    public List<Integer> getMeter()
+    public Meter getMeter()
     {
-        return MeterUtils.getMeterForSyllables(m_syllables);
+        return Meter.forSyllables(m_syllables);
     }
 
     /**
      * @throws IllegalStateException if a word doesn't have a pronunciation in the dictionary
      */
     @Nonnull
-    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull IDictionary dictionary) throws Exception
+    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull Dictionary dictionary) throws Exception
     {
         List<List<Pronunciation>> pronunciations = words.stream()
             .map(dictionary::getPronunciations)

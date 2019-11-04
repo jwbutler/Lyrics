@@ -40,7 +40,7 @@ public enum GutenbergText
     }
 
     @Nonnull
-    public ILineSupplier getLineSupplier(@Nonnull GutenbergReader reader)
+    public LineSupplier getLineSupplier(@Nonnull GutenbergReader reader)
     {
         return reader.readProseFile(m_filename, m_lastLineBeforeStart, m_firstLineAfterEnd);
     }

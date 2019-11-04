@@ -3,9 +3,9 @@ package lyrics.texts;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lyrics.RhymeMap;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
+import lyrics.meter.Meter;
 import lyrics.poetry.Line;
-import lyrics.utils.MeterUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -27,10 +27,10 @@ import java.util.stream.IntStream;
  * @since July 2018
  */
 @Immutable
-public class PoetryLineSupplier implements ILineSupplier
+public class PoetryLineSupplier implements LineSupplier
 {
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
     @Nonnull
     private final List<Line> m_lines;
     @Nonnull
@@ -39,9 +39,9 @@ public class PoetryLineSupplier implements ILineSupplier
      * a map of (meter -> (last word -> lines))
      */
     @Nonnull
-    private final Map<List<Integer>, Map<String, List<Line>>> m_linesByMeter;
+    private final Map<Meter, Map<String, List<Line>>> m_linesByMeter;
 
-    public PoetryLineSupplier(@Nonnull IDictionary dictionary, @Nonnull List<Line> lines)
+    public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull List<Line> lines)
     {
         m_dictionary = dictionary;
         m_lines = ImmutableList.copyOf(lines);
@@ -51,7 +51,7 @@ public class PoetryLineSupplier implements ILineSupplier
 
     @Override
     @CheckForNull
-    public Line getLine(@Nonnull List<Integer> meter)
+    public Line getLine(@Nonnull Meter meter)
     {
         Map<String, List<Line>> matchingLineMap = _getLinesByMeter(meter);
 
@@ -77,7 +77,7 @@ public class PoetryLineSupplier implements ILineSupplier
 
     @Override
     @CheckForNull
-    public Line getLine(@Nonnull List<Line> previousLines, @Nonnull List<Integer> meter)
+    public Line getLine(@Nonnull List<Line> previousLines, @Nonnull Meter meter)
     {
         Preconditions.checkArgument(!previousLines.isEmpty());
 
@@ -128,12 +128,12 @@ public class PoetryLineSupplier implements ILineSupplier
      * @return a map of (last word -> lines)
      */
     @Nonnull
-    private Map<String, List<Line>> _getLinesByMeter(@Nonnull List<Integer> meter)
+    private Map<String, List<Line>> _getLinesByMeter(@Nonnull Meter meter)
     {
         return m_linesByMeter.computeIfAbsent(meter, m ->
         {
             return m_lines.parallelStream()
-                .filter(line -> MeterUtils.fitsMeter(m, line.getMeter()))
+                .filter(line -> m.fitsLineMeter(line.getMeter()))
                 .collect(Collectors.groupingBy(
                     line -> line.getWords().get(line.getWords().size() - 1).toUpperCase()
                 ));

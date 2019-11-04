@@ -4,11 +4,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lyrics.Logging;
 import lyrics.RhymeMap;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
+import lyrics.meter.Meter;
 import lyrics.poetry.Line;
-import lyrics.utils.MeterUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * @author jbutler
+ * @author jwbutler
  * @since August 2018
  */
-public class ProseLineSupplier implements ILineSupplier
+public class ProseLineSupplier implements LineSupplier
 {
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
     @Nonnull
     private final List<String> m_sentences;
     @Nonnull
@@ -38,9 +38,9 @@ public class ProseLineSupplier implements ILineSupplier
      * a map of (meter -> (last word -> lines))
      */
     @Nonnull
-    private final Map<List<Integer>, Map<String, List<Line>>> m_linesByMeter;
+    private final Map<Meter, Map<String, List<Line>>> m_linesByMeter;
 
-    public ProseLineSupplier(@Nonnull IDictionary dictionary, @Nonnull List<String> sentences)
+    public ProseLineSupplier(@Nonnull Dictionary dictionary, @Nonnull List<String> sentences)
     {
         m_dictionary = dictionary;
         m_sentences = sentences;
@@ -50,7 +50,7 @@ public class ProseLineSupplier implements ILineSupplier
 
     @Override
     @Nonnull
-    public Line getLine(@Nonnull List<Integer> meter)
+    public Line getLine(@Nonnull Meter meter)
     {
         if (!m_linesByMeter.containsKey(meter))
         {
@@ -80,7 +80,7 @@ public class ProseLineSupplier implements ILineSupplier
      */
     @Override
     @CheckForNull
-    public Line getLine(@Nonnull List<Line> previousLines, @Nonnull List<Integer> meter)
+    public Line getLine(@Nonnull List<Line> previousLines, @Nonnull Meter meter)
     {
         Preconditions.checkArgument(!previousLines.isEmpty());
 
@@ -93,7 +93,7 @@ public class ProseLineSupplier implements ILineSupplier
         String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
         Set<String> rhymingWords = m_rhymeMap.getRhymes(lastWordOfFirstLine);
 
-        List<Line> matchingLines = m_linesByMeter.get(meter)
+        List<Line> matchingLines = m_linesByMeter.getOrDefault(meter, Collections.emptyMap())
             .entrySet()
             .parallelStream()
             .filter(e -> rhymingWords.contains(e.getKey()))
@@ -126,8 +126,11 @@ public class ProseLineSupplier implements ILineSupplier
         return null;
     }
 
+    /**
+     * @return a map of (last word in the line -> line)
+     */
     @Nonnull
-    private Map<String, List<Line>> _computeLinesForMeter(@Nonnull List<Integer> meter)
+    private Map<String, List<Line>> _computeLinesForMeter(@Nonnull Meter meter)
     {
         return m_sentences.parallelStream()
             .map(sentence -> _computeLinesForSentenceAndMeter(sentence, meter))
@@ -139,7 +142,7 @@ public class ProseLineSupplier implements ILineSupplier
      * @param sentence Assumed to be non-empty
      */
     @Nonnull
-    private List<Line> _computeLinesForSentenceAndMeter(@Nonnull String sentence, @Nonnull List<Integer> meter)
+    private List<Line> _computeLinesForSentenceAndMeter(@Nonnull String sentence, @Nonnull Meter meter)
     {
         ImmutableList.Builder<Line> builder = new ImmutableList.Builder<>();
         try
@@ -156,9 +159,7 @@ public class ProseLineSupplier implements ILineSupplier
                         .subList(i, j + 1);
 
                     // if any words aren't in the dictionary, give up
-                    if (words.stream()
-                        .anyMatch(w -> m_dictionary.getPronunciations(w)
-                            .isEmpty()))
+                    if (words.stream().anyMatch(w -> m_dictionary.getPronunciations(w).isEmpty()))
                     {
                         break;
                     }
@@ -169,13 +170,11 @@ public class ProseLineSupplier implements ILineSupplier
                         .map(Pronunciation::getSyllables)
                         .flatMap(List::stream)
                         .collect(Collectors.toList());
+                    Meter lineMeter = Meter.forSyllables(syllables);
 
-                    if (MeterUtils.fitsMeter(meter, MeterUtils.getMeterForSyllables(syllables)))
+                    if (meter.fitsLineMeter(lineMeter))
                     {
-                        builder.add(new Line(
-                            words.stream().collect(Collectors.joining(" ")),
-                            m_dictionary)
-                        );
+                        builder.add(new Line(String.join(" ", words), m_dictionary));
                         break;
                     }
                 }

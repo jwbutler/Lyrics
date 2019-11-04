@@ -8,10 +8,6 @@ import lyrics.utils.StringUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +19,7 @@ import java.util.stream.Collectors;
  * @author jbutler
  * @since July 2018
  */
-public class CMUDictionary implements IDictionary
+public class CMUDictionary implements Dictionary
 {
     private static final String SPLIT_PATTERN = "  ";
 

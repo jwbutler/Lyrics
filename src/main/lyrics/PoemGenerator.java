@@ -2,10 +2,11 @@ package lyrics;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
+import lyrics.meter.Meter;
 import lyrics.poetry.Line;
 import lyrics.poetry.Poem;
-import lyrics.texts.ILineSupplier;
+import lyrics.texts.LineSupplier;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -22,18 +23,18 @@ import java.util.stream.IntStream;
 public class PoemGenerator
 {
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
     @Nonnull
-    private final List<ILineSupplier> m_lineSuppliers;
+    private final List<LineSupplier> m_lineSuppliers;
 
-    public PoemGenerator(@Nonnull IDictionary dictionary, @Nonnull List<ILineSupplier> lineSuppliers)
+    public PoemGenerator(@Nonnull Dictionary dictionary, @Nonnull List<LineSupplier> lineSuppliers)
     {
         m_dictionary = dictionary;
         m_lineSuppliers = ImmutableList.copyOf(lineSuppliers);
     }
 
     @Nonnull
-    public Poem generatePoem(@Nonnull List<List<Integer>> lineMeters, @Nonnull List<Character> rhymeScheme, int numStanzas)
+    public Poem generatePoem(@Nonnull List<Meter> lineMeters, @Nonnull List<Character> rhymeScheme, int numStanzas)
     {
         Preconditions.checkArgument(lineMeters.size() > 0 && rhymeScheme.size() > 0);
         Preconditions.checkArgument(lineMeters.size() == rhymeScheme.size());
@@ -49,7 +50,7 @@ public class PoemGenerator
     }
 
     @Nonnull
-    private List<Line> _generateStanza(@Nonnull List<List<Integer>> lineMeters, @Nonnull List<Character> rhymeScheme)
+    private List<Line> _generateStanza(@Nonnull List<Meter> lineMeters, @Nonnull List<Character> rhymeScheme)
     {
         Random RNG = ThreadLocalRandom.current();
         List<Line> lines = new ArrayList<>();
@@ -58,7 +59,7 @@ public class PoemGenerator
             lines.clear();
             for (int i = 0; i < lineMeters.size(); i++)
             {
-                ILineSupplier lineSupplier = m_lineSuppliers.get(RNG.nextInt(m_lineSuppliers.size()));
+                LineSupplier lineSupplier = m_lineSuppliers.get(RNG.nextInt(m_lineSuppliers.size()));
                 ImmutableList.Builder<Line> builder = new ImmutableList.Builder<>();
                 for (int j = 0; j < i; j++)
                 {

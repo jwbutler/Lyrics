@@ -3,12 +3,12 @@ package lyrics;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lyrics.dictionaries.CMUDictionary;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
+import lyrics.meter.Meter;
 import lyrics.poetry.Line;
 import lyrics.readers.SongLyricsReader;
-import lyrics.texts.ILineSupplier;
+import lyrics.texts.LineSupplier;
 import lyrics.texts.PoetryLineSupplier;
-import lyrics.utils.MeterUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -21,9 +21,9 @@ import java.util.List;
 public class MeterTester
 {
     @Nonnull
-    private final IDictionary m_dictionary;
+    private final Dictionary m_dictionary;
     @Nonnull
-    private final ILineSupplier m_text;
+    private final LineSupplier m_text;
 
     public static void main(String[] args) throws IOException
     {
@@ -36,16 +36,16 @@ public class MeterTester
         PoetryLineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
 
         MeterTester meterTester = new MeterTester(dictionary, songLyrics);
-        meterTester.doTest(ImmutableList.of(0,1,0,1,0,1,0,1,0,1));
+        meterTester.doTest(Meter.of(0,1,0,1,0,1,0,1,0,1));
     }
 
-    public MeterTester(@Nonnull IDictionary dictionary, @Nonnull ILineSupplier text)
+    public MeterTester(@Nonnull Dictionary dictionary, @Nonnull LineSupplier text)
     {
         m_dictionary = dictionary;
         m_text = text;
     }
 
-    public void doTest(@Nonnull List<Integer> meter)
+    public void doTest(@Nonnull Meter meter)
     {
         Preconditions.checkArgument(!meter.isEmpty());
         for (int i = 0; i < 10; i++)
@@ -55,7 +55,7 @@ public class MeterTester
             {
                 line = m_text.getLine(meter);
             }
-            while (!MeterUtils.fitsMeter(meter, line.getMeter()));
+            while (!meter.fitsLineMeter(line.getMeter()));
 
             System.out.printf("%-50s => %s\n", line, line.getMeter());
         }

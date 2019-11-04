@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import lyrics.linguistics.Phoneme;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
-import lyrics.dictionaries.IDictionary;
+import lyrics.dictionaries.Dictionary;
 
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
@@ -100,7 +100,7 @@ public class RhymeUtils
         return ImmutableList.copyOf(phonemes.subList(index, phonemes.size()));
     }
 
-    public static boolean anyPronunciationsRhyme(@Nonnull String first, @Nonnull String second, @Nonnull IDictionary dictionary)
+    public static boolean anyPronunciationsRhyme(@Nonnull String first, @Nonnull String second, @Nonnull Dictionary dictionary)
     {
         List<Pronunciation> firstList = dictionary.getPronunciations(first);
         List<Pronunciation> secondList = dictionary.getPronunciations(second);

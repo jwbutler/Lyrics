@@ -31,12 +31,12 @@ public class Pronunciation
 
     public Pronunciation(@Nonnull String spaceSeparatedPhonemes)
     {
-        List<Pair<Phoneme, Integer>> phonemesWithEmphasis = Arrays.stream(spaceSeparatedPhonemes.split(" ")).map(Phoneme::getPhonemeWithEmphasis).collect(Collectors.toList());
+        List<Pair<Phoneme, Emphasis>> phonemesWithEmphasis = Arrays.stream(spaceSeparatedPhonemes.split(" ")).map(Phoneme::getPhonemeWithEmphasis).collect(Collectors.toList());
         m_syllables = _computeSyllables(phonemesWithEmphasis);
     }
 
     @Nonnull
-    private static List<Syllable> _computeSyllables(@Nonnull List<Pair<Phoneme, Integer>> phonemesWithEmphasis)
+    private static List<Syllable> _computeSyllables(@Nonnull List<Pair<Phoneme, Emphasis>> phonemesWithEmphasis)
     {
         // This Builder is in reverse order.  Reverse it after building.
         ImmutableList.Builder<Syllable> syllables = new ImmutableList.Builder<>();
@@ -46,7 +46,7 @@ public class Pronunciation
         // then find a vowel cluster;
         // then find a consonant cluster.
         List<Phoneme> phonemesInSyllable = new ArrayList<>();
-        @CheckForNull Integer emphasis = null;
+        @CheckForNull Emphasis emphasis = null;
 
         int index = phonemesWithEmphasis.size() - 1;
 
@@ -82,7 +82,7 @@ public class Pronunciation
             index--;
         }
 
-        syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(0)));
+        syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.WEAK)));
         emphasis = null;
 
         // Now find any number of (consonant-vowel) syllables.
@@ -111,7 +111,7 @@ public class Pronunciation
                 phonemesInSyllable.add(phonemesWithEmphasis.get(index).getFirst());
                 index--;
             }
-            syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(0)));
+            syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.WEAK)));
             emphasis = null;
         }
         return syllables.build().reverse();

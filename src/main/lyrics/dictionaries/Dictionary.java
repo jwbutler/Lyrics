@@ -10,7 +10,8 @@ import java.util.Set;
  * @author jbutler
  * @since July 2018
  */
-public interface IDictionary {
+public interface Dictionary
+{
   @Nonnull Set<String> getWords();
   @Nonnull List<Pronunciation> getPronunciations(@Nonnull String word);
 }

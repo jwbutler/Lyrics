@@ -2,11 +2,12 @@ package lyrics;
 
 import com.google.common.collect.ImmutableList;
 import lyrics.dictionaries.CMUDictionary;
+import lyrics.meter.Meter;
 import lyrics.poetry.Poem;
 import lyrics.readers.SongLyricsReader;
 import lyrics.songs.SongPattern;
 import lyrics.songs.StanzaPattern;
-import lyrics.texts.ILineSupplier;
+import lyrics.texts.LineSupplier;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class LyricsApp
         //GutenbergReader gutenbergReader = new GutenbergReader(dictionary);
         SongLyricsReader songLyricsReader = new SongLyricsReader(dictionary);
 
-        ILineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
+        LineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
         //ILineSupplier urbanDictionary = urbanDictionaryReader.readFileAsPoetry("urbandict-word-def.csv");
 
         PoemGenerator poemGenerator = new PoemGenerator(dictionary, ImmutableList.of(
@@ -54,7 +55,7 @@ public class LyricsApp
         }
         String pattern = args[0];
 
-        ImmutableList.Builder<List<Integer>> meters = new ImmutableList.Builder<>();
+        ImmutableList.Builder<Meter> meters = new ImmutableList.Builder<>();
         ImmutableList.Builder<Character> rhymes = new ImmutableList.Builder<>();
         ArrayList<Integer> meter = new ArrayList<>();
 
@@ -73,7 +74,7 @@ public class LyricsApp
             {
                 if (lastCharWasNumber)
                 {
-                    meters.add(ImmutableList.copyOf(meter));
+                    meters.add(Meter.of(meter));
                     meter.clear();
                     rhymes.add(c);
                     lastCharWasNumber = false;
@@ -98,7 +99,7 @@ public class LyricsApp
             for (int j = 0; j < songPattern.getStanzaPatterns().size(); j++)
             {
                 StanzaPattern stanza = songPattern.getStanzaPatterns().get(j);
-                Poem poem = poemGenerator.generatePoem(stanza.getMeter(), stanza.getRhymeScheme(), 1);
+                Poem poem = poemGenerator.generatePoem(stanza.getMeters(), stanza.getRhymeScheme(), 1);
                 builder.add(poem);
             }
             List<Poem> stanzas = builder.build();
