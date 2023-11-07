@@ -29,18 +29,18 @@ import lyrics.poetry.Line;
 public class PoetryLineSupplier implements LineSupplier
 {
     @Nonnull
-    private final List<Line> m_lines;
+    private final Set<Line> m_lines;
     @Nonnull
     private final RhymeMap m_rhymeMap;
     /**
      * a map of (meter -> (last word -> lines))
      */
     @Nonnull
-    private final Map<Meter, Map<String, List<Line>>> m_linesByMeter;
+    private final Map<Meter, Map<String, Set<Line>>> m_linesByMeter;
 
-    public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull List<Line> lines)
+    public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull Set<Line> lines)
     {
-        m_lines = List.copyOf(lines);
+        m_lines = lines;
         m_rhymeMap = new RhymeMap(dictionary);
         m_linesByMeter = new HashMap<>();
     }
@@ -49,7 +49,7 @@ public class PoetryLineSupplier implements LineSupplier
     @CheckForNull
     public Line getLine(@Nonnull Meter meter)
     {
-        Map<String, List<Line>> matchingLineMap = _getLinesByMeter(meter);
+        Map<String, Set<Line>> matchingLineMap = _getLinesByMeter(meter);
 
         if (matchingLineMap.isEmpty())
         {
@@ -58,7 +58,7 @@ public class PoetryLineSupplier implements LineSupplier
 
         List<Line> lines = matchingLineMap.values()
             .stream()
-            .flatMap(List::stream)
+            .flatMap(Set::stream)
             .toList();
 
         Random RNG = ThreadLocalRandom.current();
@@ -73,7 +73,7 @@ public class PoetryLineSupplier implements LineSupplier
         Preconditions.checkArgument(!previousLines.isEmpty());
 
         Line firstLine = previousLines.get(0);
-        String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
+        String lastWordOfFirstLine = firstLine.words().getLast();
         Set<String> rhymingWords = m_rhymeMap.getRhymes(lastWordOfFirstLine);
 
         if (rhymingWords.isEmpty())
@@ -81,13 +81,13 @@ public class PoetryLineSupplier implements LineSupplier
             return null;
         }
 
-        Map<String, List<Line>> lines = _getLinesByMeter(meter);
+        Map<String, Set<Line>> lines = _getLinesByMeter(meter);
 
         List<Line> matchingLines = lines.entrySet()
             .stream()
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
-            .flatMap(List::stream)
+            .flatMap(Set::stream)
             .toList();
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
@@ -100,9 +100,9 @@ public class PoetryLineSupplier implements LineSupplier
         for (int i : lineIndices)
         {
             Line line = matchingLines.get(i);
-            String lastWord = line.getWords().get(line.getWords().size() - 1);
+            String lastWord = line.words().getLast();
             boolean differentLastWord = previousLines.stream()
-                .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
+                .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.words().getLast()));
             boolean matchesPreviousLine = previousLines.stream()
                 .anyMatch(line::matches);
 
@@ -118,13 +118,14 @@ public class PoetryLineSupplier implements LineSupplier
      * @return a map of (last word -> lines)
      */
     @Nonnull
-    private Map<String, List<Line>> _getLinesByMeter(@Nonnull Meter meter)
+    private Map<String, Set<Line>> _getLinesByMeter(@Nonnull Meter meter)
     {
         return m_linesByMeter.computeIfAbsent(meter, m ->
             m_lines.stream()
                 .filter(line -> m.fitsLineMeter(line.getMeter()))
                 .collect(Collectors.groupingBy(
-                    line -> line.getWords().get(line.getWords().size() - 1).toUpperCase()
+                    line -> line.words().getLast().toUpperCase(),
+                    Collectors.toSet()
                 )));
     }
 }

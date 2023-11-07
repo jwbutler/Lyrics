@@ -20,18 +20,18 @@ public class RhymeUtils
      */
     public static boolean rhymesWith(@Nonnull Pronunciation firstWord, @Nonnull Pronunciation secondWord)
     {
-        int numSyllablesToMatch = Math.min(firstWord.getSyllables().size(), 2);
-        if (secondWord.getSyllables().size() < numSyllablesToMatch)
+        int numSyllablesToMatch = Math.min(firstWord.syllables().size(), 2);
+        if (secondWord.syllables().size() < numSyllablesToMatch)
         {
             return false;
         }
 
         for (int i = 0; i < numSyllablesToMatch; i++)
         {
-            int firstIndex = firstWord.getSyllables().size() - 1 - i;
-            int secondIndex = secondWord.getSyllables().size() - 1 - i;
-            Syllable firstSyllable = firstWord.getSyllables().get(firstIndex);
-            Syllable secondSyllable = secondWord.getSyllables().get(secondIndex);
+            int firstIndex = firstWord.syllables().size() - 1 - i;
+            int secondIndex = secondWord.syllables().size() - 1 - i;
+            Syllable firstSyllable = firstWord.syllables().get(firstIndex);
+            Syllable secondSyllable = secondWord.syllables().get(secondIndex);
 
             // Ignore initial consonants if this is the first syllable.
             if (i == (numSyllablesToMatch - 1))
@@ -54,7 +54,7 @@ public class RhymeUtils
 
     public static boolean rhymesWith(@Nonnull Syllable firstSyllable, @Nonnull Syllable secondSyllable)
     {
-        return rhymesWith(firstSyllable.getPhonemes(), secondSyllable.getPhonemes());
+        return rhymesWith(firstSyllable.phonemes(), secondSyllable.phonemes());
     }
 
     public static boolean rhymesWith(@Nonnull List<Phoneme> firstPhonemes, @Nonnull List<Phoneme> secondPhonemes)
@@ -88,13 +88,13 @@ public class RhymeUtils
     @Nonnull
     private static List<Phoneme> _removeInitialConsonants(@Nonnull Syllable syllable)
     {
-        List<Phoneme> phonemes = syllable.getPhonemes();
+        List<Phoneme> phonemes = syllable.phonemes();
         int index = 0;
         while (!phonemes.get(index).isVowel())
         {
             index++;
         }
-        return List.copyOf(phonemes.subList(index, phonemes.size()));
+        return phonemes.subList(index, phonemes.size());
     }
 
     public static boolean anyPronunciationsRhyme(@Nonnull String first, @Nonnull String second, @Nonnull Dictionary dictionary)

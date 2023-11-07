@@ -27,17 +27,19 @@ import static java.lang.Integer.parseInt;
  * @author jbutler
  * @since July 2018
  */
-public class Pronunciation
+public record Pronunciation
+(
+    @Nonnull List<Syllable> syllables
+)
 {
     @Nonnull
-    private final List<Syllable> m_syllables;
-
-    public Pronunciation(@Nonnull String spaceSeparatedPhonemes)
+    public static Pronunciation fromPhonemes(@Nonnull String spaceSeparatedPhonemes)
     {
         List<PhonemeWithEmphasis> phonemesWithEmphasis = Arrays.stream(spaceSeparatedPhonemes.split(" "))
             .map(Pronunciation::_phonemeWithEmphasis)
             .toList();
-        m_syllables = _computeSyllables(phonemesWithEmphasis);
+        var syllables = _computeSyllables(phonemesWithEmphasis);
+        return new Pronunciation(syllables);
     }
 
     @Nonnull
@@ -120,12 +122,6 @@ public class Pronunciation
             emphasis = null;
         }
         return Lists.reverse(syllables);
-    }
-
-    @Nonnull
-    public List<Syllable> getSyllables()
-    {
-        return m_syllables;
     }
 
     /**

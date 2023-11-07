@@ -14,7 +14,12 @@ import java.util.stream.Collectors;
  * @author jwbutler
  * @since July 2018
  */
-public class Syllable
+public record Syllable
+(
+    @Nonnull List<Phoneme> phonemes,
+    @Nonnull Type type,
+    @Nonnull Emphasis emphasis
+)
 {
     public enum Type
     {
@@ -24,25 +29,16 @@ public class Syllable
         VOWEL // This only appears at the beginning of a word
     }
 
-    @Nonnull
-    private final List<Phoneme> m_phonemes;
-    @Nonnull
-    private final Type m_type;
-    @Nonnull
-    private final Emphasis m_emphasis;
-
     public Syllable(@Nonnull List<Phoneme> phonemes, @Nonnull Emphasis emphasis)
     {
-        m_phonemes = List.copyOf(phonemes);
-        m_type = _computeType(phonemes);
-        m_emphasis = emphasis;
+        this(phonemes, _computeType(phonemes), emphasis);
     }
 
     /**
      * @throws IllegalArgumentException if the list does not map to any Type value
      */
     @Nonnull
-    private Type _computeType(@Nonnull List<Phoneme> phonemes)
+    private static Type _computeType(@Nonnull List<Phoneme> phonemes)
     {
         if (phonemes.stream().allMatch(Phoneme::isVowel))
         {
@@ -66,7 +62,7 @@ public class Syllable
                 }
             }
         }
-        throw new IllegalArgumentException("lyrics.linguistics.Syllable " + toString() + " does not match any known syllable type");
+        throw new IllegalArgumentException("Invalid syllable: " + phonemes);
     }
 
     /**
@@ -89,51 +85,5 @@ public class Syllable
     public static Syllable of(@Nonnull String spaceSeparatedPhonemes)
     {
         return Syllable.of(spaceSeparatedPhonemes, Emphasis.WEAK);
-    }
-
-    @Nonnull
-    public Type getType()
-    {
-        return m_type;
-    }
-
-    @Nonnull
-    public List<Phoneme> getPhonemes()
-    {
-        return m_phonemes;
-    }
-
-    @Nonnull
-    public Emphasis getEmphasis()
-    {
-        return m_emphasis;
-    }
-
-    @Nonnull
-    @Override
-    public String toString()
-    {
-        return m_phonemes.stream().map(Phoneme::toString).collect(Collectors.joining(" "));
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o)
-        {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass())
-        {
-            return false;
-        }
-        Syllable syllable = (Syllable) o;
-        return m_phonemes.equals(syllable.m_phonemes) && m_type == syllable.m_type && m_emphasis == syllable.m_emphasis;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(m_phonemes, m_type, m_emphasis);
     }
 }

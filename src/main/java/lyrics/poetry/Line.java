@@ -1,56 +1,49 @@
 package lyrics.poetry;
 
+import java.util.List;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
 import lyrics.meter.Meter;
 import lyrics.utils.StringUtils;
 
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * @author jbutler
  * @since July 2018
  */
-public class Line
+public record Line
+(
+    @Nonnull List<String> words,
+    @Nonnull List<Syllable> syllables
+)
 {
-    @Nonnull
-    private final List<String> m_words;
-    @Nonnull
-    private final List<Syllable> m_syllables;
-
     /**
      * @param string A space-separated list of words
-     * @throws Exception
      */
-    public Line(@Nonnull String string, @Nonnull Dictionary dictionary) throws Exception
-    {
-        m_words = List.copyOf(Stream.of(string.split("\\s+"))
-            .map(StringUtils::alphanumericOnly)
-            .toList());
-        m_syllables = _computeSyllables(m_words, dictionary);
-    }
-
     @Nonnull
-    public List<String> getWords()
+    public static Line fromString(@Nonnull String string, @Nonnull Dictionary dictionary)
     {
-        return m_words;
+        List<String> words = Stream.of(string.split("\\s+"))
+            .map(StringUtils::alphanumericOnly)
+            .toList();
+        List<Syllable> syllables = _computeSyllables(words, dictionary);
+        return new Line(words, syllables);
     }
 
     @Override
     @Nonnull
     public String toString()
     {
-        return String.join(" ", m_words);
+        return String.join(" ", words());
     }
 
     @Nonnull
     public Meter getMeter()
     {
-        return Meter.forSyllables(m_syllables);
+        return Meter.forSyllables(syllables());
     }
 
     /**
@@ -74,26 +67,18 @@ public class Line
         return words.stream()
             .map(dictionary::getPronunciations)
             .map(list -> list.get(0))
-            .map(Pronunciation::getSyllables)
+            .map(Pronunciation::syllables)
             .flatMap(List::stream)
             .toList();
     }
 
     public boolean matches(@Nonnull Line line)
     {
-        if (!m_words.stream().map(String::toUpperCase).toList()
-            .equals(line.m_words.stream().map(String::toUpperCase).toList()))
+        if (!words().stream().map(String::toUpperCase).toList()
+            .equals(line.words().stream().map(String::toUpperCase).toList()))
         {
             return false;
         }
-        return m_syllables.equals(line.m_syllables);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = m_words.hashCode();
-        result = 31 * result + m_syllables.hashCode();
-        return result;
+        return syllables().equals(line.syllables());
     }
 }

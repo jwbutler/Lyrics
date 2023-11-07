@@ -6,10 +6,10 @@ import lyrics.poetry.Poem;
 import lyrics.readers.SongLyricsReader;
 import lyrics.songs.SongPattern;
 import lyrics.songs.StanzaPattern;
+import lyrics.songs.StanzaPatterns;
 import lyrics.texts.LineSupplier;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -50,8 +50,8 @@ public class LyricsApp
     {
         if (args.length == 0)
         {
-            //return new SongPattern(List.of(StanzaPattern.CAVEMAN), 100);
-            return new SongPattern(List.of(StanzaPattern.SPACE_DAGGER), 100);
+            //return new SongPattern(List.of(StanzaPatterns.CAVEMAN), 100);
+            return new SongPattern(List.of(StanzaPatterns.SPACE_DAGGER), 100);
         }
         String pattern = args[0];
 
@@ -87,19 +87,19 @@ public class LyricsApp
         }
 
         StanzaPattern stanzaPattern = new StanzaPattern(meters, rhymes);
-        return new SongPattern(stanzaPattern, 20);
+        return new SongPattern(List.of(stanzaPattern), 20);
     }
 
     private static void _writeSong(@Nonnull PoemGenerator poemGenerator, @Nonnull SongPattern songPattern)
     {
-        IntStream.range(0, songPattern.getNumVerses()).forEach(i ->
+        IntStream.range(0, songPattern.numVerses()).forEach(i ->
         {
             List<Poem> stanzas = new ArrayList<>();
             // these need to be inserted in order
-            for (int j = 0; j < songPattern.getStanzaPatterns().size(); j++)
+            for (int j = 0; j < songPattern.stanzaPatterns().size(); j++)
             {
-                StanzaPattern stanza = songPattern.getStanzaPatterns().get(j);
-                Poem poem = poemGenerator.generatePoem(stanza.getMeters(), stanza.getRhymeScheme(), 1);
+                StanzaPattern stanza = songPattern.stanzaPatterns().get(j);
+                Poem poem = poemGenerator.generatePoem(stanza.meters(), stanza.rhymeScheme(), 1);
                 stanzas.add(poem);
             }
 

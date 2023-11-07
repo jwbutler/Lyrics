@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,12 +48,12 @@ public class GutenbergReader
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
-        List<Line> mappedLines = lines.stream()
+        Set<Line> mappedLines = lines.stream()
             .map(s ->
             {
                 try
                 {
-                    return new Line(s, m_dictionary);
+                    return Line.fromString(s, m_dictionary);
                 }
                 catch (Exception e)
                 {
@@ -61,7 +62,7 @@ public class GutenbergReader
                 }
             })
             .filter(Objects::nonNull)
-            .toList();
+            .collect(Collectors.toSet());
 
         return new PoetryLineSupplier(m_dictionary, mappedLines);
     }

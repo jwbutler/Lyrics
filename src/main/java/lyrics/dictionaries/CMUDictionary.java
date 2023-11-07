@@ -69,7 +69,7 @@ public class CMUDictionary implements Dictionary
                 int index = line.indexOf(SPLIT_PATTERN);
                 String key = StringUtils.alphabeticOnly(line.substring(0, index));
 
-                return Pair.of(key, new Pronunciation(line.substring(index + 2, line.length())));
+                return Pair.of(key, Pronunciation.fromPhonemes(line.substring(index + 2, line.length())));
             }
             else
             {

@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,38 +45,40 @@ public class SongLyricsReader
         System.out.println("SongLyricsReader - Reading song lyrics...");
         try (
             BufferedReader reader = FileUtils.getBufferedReader(filename);
-            CSVParser parser = new CSVParser(reader, CSV_FORMAT)
+            CSVParser parser = new CSVParser(reader, CSV_FORMAT);
+            var executor = Executors.newVirtualThreadPerTaskExecutor()
         )
         {
             long t1 = System.currentTimeMillis();
             var numErrors = new AtomicInteger(0);
 
-            List<Line> lines = parser.getRecords()
-                .stream()
-                .map(r -> r.get(3))
-                .flatMap(SongLyricsReader::_splitToLines)
-                .map(line ->
-                {
-                    try
+            Set<Line> lines = executor.submit(() ->
+                parser.getRecords()
+                    .parallelStream()
+                    .map(r -> r.get(3))
+                    .flatMap(SongLyricsReader::_splitToLines)
+                    .map(line ->
                     {
-                        return new Line(line, m_dictionary);
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.debug(e.getMessage(), e);
-                        numErrors.incrementAndGet();
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
+                        try
+                        {
+                            return Line.fromString(line, m_dictionary);
+                        }
+                        catch (Exception e)
+                        {
+                            Logging.debug(e.getMessage(), e);
+                            numErrors.incrementAndGet();
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet())
+            ).get();
 
             long t2 = System.currentTimeMillis();
             Logging.info("SongLyricsReader - Read " + lines.size() + " lines in " + (t2-t1) + " ms with " + numErrors.get() + " errors");
             return new PoetryLineSupplier(m_dictionary, lines);
         }
-        catch (IOException e)
+        catch (IOException | InterruptedException | ExecutionException e)
         {
             // Not much point in continuing
             throw new RuntimeException(e);

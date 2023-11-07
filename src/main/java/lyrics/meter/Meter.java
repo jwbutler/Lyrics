@@ -23,7 +23,7 @@ public interface Meter
     static Meter forSyllables(@Nonnull List<Syllable> syllables)
     {
         List<Emphasis> emphasisList = syllables.stream()
-            .map(Syllable::getEmphasis)
+            .map(Syllable::emphasis)
             .toList();
         return new MeterImpl(emphasisList);
     }
