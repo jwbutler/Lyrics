@@ -43,7 +43,7 @@ public class GutenbergReader
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()
             .map(String::trim)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
@@ -61,7 +61,7 @@ public class GutenbergReader
                 }
             })
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
 
         return new PoetryLineSupplier(m_dictionary, mappedLines);
     }
@@ -109,14 +109,14 @@ public class GutenbergReader
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()
             .map(String::trim)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
         List<String> sentences = Arrays.stream(String.join(" ", lines).split(SENTENCE_ENDING_PUNCTUATION))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
-            .collect(Collectors.toList());
+            .toList();
 
         return new ProseLineSupplier(m_dictionary, sentences);
     }

@@ -24,7 +24,7 @@ public interface Meter
     {
         List<Emphasis> emphasisList = syllables.stream()
             .map(Syllable::getEmphasis)
-            .collect(Collectors.toList());
+            .toList();
         return new MeterImpl(emphasisList);
     }
 
@@ -33,7 +33,7 @@ public interface Meter
     {
         List<Emphasis> emphasisList = Arrays.stream(emphasisValues)
             .mapToObj(i -> i == 1 ? Emphasis.STRONG : Emphasis.WEAK)
-            .collect(Collectors.toList());
+            .toList();
 
         return new MeterImpl(emphasisList);
     }

@@ -1,23 +1,23 @@
 package lyrics.texts;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.base.Preconditions;
 import lyrics.RhymeMap;
 import lyrics.dictionaries.Dictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Line;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * A text consisting of a collection of discrete lines.
@@ -42,7 +42,7 @@ public class PoetryLineSupplier implements LineSupplier
     {
         m_lines = List.copyOf(lines);
         m_rhymeMap = new RhymeMap(dictionary);
-        m_linesByMeter = new ConcurrentHashMap<>();
+        m_linesByMeter = new HashMap<>();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PoetryLineSupplier implements LineSupplier
         List<Line> lines = matchingLineMap.values()
             .stream()
             .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .toList();
 
         Random RNG = ThreadLocalRandom.current();
         int index = RNG.nextInt(lines.size());
@@ -88,7 +88,7 @@ public class PoetryLineSupplier implements LineSupplier
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
             .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .toList();
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
             .boxed()

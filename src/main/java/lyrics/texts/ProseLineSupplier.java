@@ -13,11 +13,11 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -45,7 +45,7 @@ public class ProseLineSupplier implements LineSupplier
         m_dictionary = dictionary;
         m_sentences = sentences;
         m_rhymeMap = new RhymeMap(m_dictionary);
-        m_linesByMeter = new ConcurrentHashMap<>();
+        m_linesByMeter = new HashMap<>();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ProseLineSupplier implements LineSupplier
             .values()
             .stream()
             .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .toList();
 
         if (lines.isEmpty())
         {
@@ -99,7 +99,7 @@ public class ProseLineSupplier implements LineSupplier
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
             .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .toList();
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
             .boxed()
@@ -167,7 +167,7 @@ public class ProseLineSupplier implements LineSupplier
                         .map(list -> list.get(0))
                         .map(Pronunciation::getSyllables)
                         .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                        .toList();
                     Meter lineMeter = Meter.forSyllables(syllables);
 
                     if (meter.fitsLineMeter(lineMeter))

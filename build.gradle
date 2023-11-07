@@ -19,3 +19,9 @@ application {
 tasks.named('test') {
     useTestNG()
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}

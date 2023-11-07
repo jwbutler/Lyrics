@@ -30,7 +30,7 @@ public class Line
     {
         m_words = List.copyOf(Stream.of(string.split("\\s+"))
             .map(StringUtils::alphanumericOnly)
-            .collect(Collectors.toList()));
+            .toList());
         m_syllables = _computeSyllables(m_words, dictionary);
     }
 
@@ -61,7 +61,7 @@ public class Line
     {
         List<List<Pronunciation>> pronunciations = words.stream()
             .map(dictionary::getPronunciations)
-            .collect(Collectors.toList());
+            .toList();
 
         for (int i = 0; i < words.size(); i++)
         {
@@ -76,13 +76,13 @@ public class Line
             .map(list -> list.get(0))
             .map(Pronunciation::getSyllables)
             .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     public boolean matches(@Nonnull Line line)
     {
-        if (!m_words.stream().map(String::toUpperCase).collect(Collectors.toList())
-            .equals(line.m_words.stream().map(String::toUpperCase).collect(Collectors.toList())))
+        if (!m_words.stream().map(String::toUpperCase).toList()
+            .equals(line.m_words.stream().map(String::toUpperCase).toList()))
         {
             return false;
         }

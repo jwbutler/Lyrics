@@ -67,7 +67,7 @@ public class SongLyricsReader
                 })
                 .filter(Objects::nonNull)
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
 
             long t2 = System.currentTimeMillis();
             Logging.info("SongLyricsReader - Read " + lines.size() + " lines in " + (t2-t1) + " ms with " + numErrors.get() + " errors");

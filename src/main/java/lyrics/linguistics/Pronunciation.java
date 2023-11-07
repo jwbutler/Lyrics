@@ -6,7 +6,6 @@ import lyrics.Logging;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,8 +35,8 @@ public class Pronunciation
     public Pronunciation(@Nonnull String spaceSeparatedPhonemes)
     {
         List<PhonemeWithEmphasis> phonemesWithEmphasis = Arrays.stream(spaceSeparatedPhonemes.split(" "))
-            .map(Pronunciation::_getPhonemeWithEmphasis)
-            .collect(Collectors.toList());
+            .map(Pronunciation::_phonemeWithEmphasis)
+            .toList();
         m_syllables = _computeSyllables(phonemesWithEmphasis);
     }
 
@@ -56,18 +55,18 @@ public class Pronunciation
 
         int index = phonemesWithEmphasis.size() - 1;
 
-        while (index >= 0 && !phonemesWithEmphasis.get(index).getPhoneme().isVowel())
+        while (index >= 0 && !phonemesWithEmphasis.get(index).phoneme().isVowel())
         {
-            if (phonemesWithEmphasis.get(index).getEmphasis() != null)
+            if (phonemesWithEmphasis.get(index).emphasis() != null)
             {
-                emphasis = phonemesWithEmphasis.get(index).getEmphasis();
+                emphasis = phonemesWithEmphasis.get(index).emphasis();
             }
-            phonemesInSyllable.add(phonemesWithEmphasis.get(index).getPhoneme());
+            phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
             index--;
         }
-        while (index >= 0 && phonemesWithEmphasis.get(index).getPhoneme().isVowel())
+        while (index >= 0 && phonemesWithEmphasis.get(index).phoneme().isVowel())
         {
-            if (phonemesWithEmphasis.get(index).getEmphasis() != null)
+            if (phonemesWithEmphasis.get(index).emphasis() != null)
             {
                 // Handle multiple consecutive vowels
                 // Start a new syllable if the current phoneme is a vowel with emphasis and there's already an
@@ -77,14 +76,14 @@ public class Pronunciation
                     syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), emphasis));
                     phonemesInSyllable = new ArrayList<>();
                 }
-                emphasis = phonemesWithEmphasis.get(index).getEmphasis();
+                emphasis = phonemesWithEmphasis.get(index).emphasis();
             }
-            phonemesInSyllable.add(phonemesWithEmphasis.get(index).getPhoneme());
+            phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
             index--;
         }
-        while (index >= 0 && !phonemesWithEmphasis.get(index).getPhoneme().isVowel())
+        while (index >= 0 && !phonemesWithEmphasis.get(index).phoneme().isVowel())
         {
-            phonemesInSyllable.add(phonemesWithEmphasis.get(index).getPhoneme());
+            phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
             index--;
         }
 
@@ -95,9 +94,9 @@ public class Pronunciation
         while (index >= 0)
         {
             phonemesInSyllable = new ArrayList<>();
-            while (index >= 0 && phonemesWithEmphasis.get(index).getPhoneme().isVowel())
+            while (index >= 0 && phonemesWithEmphasis.get(index).phoneme().isVowel())
             {
-                if (phonemesWithEmphasis.get(index).getEmphasis() != null)
+                if (phonemesWithEmphasis.get(index).emphasis() != null)
                 {
                     // Handle multiple consecutive vowels
                     // Start a new syllable if the current phoneme is a vowel with emphasis and there's already an
@@ -107,14 +106,14 @@ public class Pronunciation
                         syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), emphasis));
                         phonemesInSyllable = new ArrayList<>();
                     }
-                    emphasis = phonemesWithEmphasis.get(index).getEmphasis();
+                    emphasis = phonemesWithEmphasis.get(index).emphasis();
                 }
-                phonemesInSyllable.add(phonemesWithEmphasis.get(index).getPhoneme());
+                phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
                 index--;
             }
-            while (index >= 0 && !phonemesWithEmphasis.get(index).getPhoneme().isVowel())
+            while (index >= 0 && !phonemesWithEmphasis.get(index).phoneme().isVowel())
             {
-                phonemesInSyllable.add(phonemesWithEmphasis.get(index).getPhoneme());
+                phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
                 index--;
             }
             syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.WEAK)));
@@ -137,7 +136,7 @@ public class Pronunciation
      *                                  or if it does not contain a phoneme value
      */
     @Nonnull
-    private static PhonemeWithEmphasis _getPhonemeWithEmphasis(@Nonnull String string)
+    private static PhonemeWithEmphasis _phonemeWithEmphasis(@Nonnull String string)
     {
         Preconditions.checkArgument(string.matches("^[A-Z0-9]*$"));
         @CheckForNull Phoneme phoneme = Phoneme.fromString(string.replaceAll("[^A-Z]", ""));
@@ -160,30 +159,5 @@ public class Pronunciation
         return new PhonemeWithEmphasis(phoneme, emphasis);
     }
 
-    @Immutable
-    private static class PhonemeWithEmphasis
-    {
-        @Nonnull
-        private final Phoneme m_phoneme;
-        @CheckForNull
-        private final Emphasis m_emphasis;
-
-        private PhonemeWithEmphasis(@Nonnull Phoneme phoneme, @CheckForNull Emphasis emphasis)
-        {
-            m_phoneme = phoneme;
-            m_emphasis = emphasis;
-        }
-
-        @Nonnull
-        private Phoneme getPhoneme()
-        {
-            return m_phoneme;
-        }
-
-        @CheckForNull
-        private Emphasis getEmphasis()
-        {
-            return m_emphasis;
-        }
-    }
+    private record PhonemeWithEmphasis(@Nonnull Phoneme phoneme, @CheckForNull Emphasis emphasis) {}
 }
