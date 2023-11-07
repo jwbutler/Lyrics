@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import lyrics.Logging;
+import lyrics.NoPronunciationException;
 import lyrics.dictionaries.Dictionary;
 import lyrics.poetry.Line;
 import lyrics.texts.PoetryLineSupplier;
@@ -63,7 +64,12 @@ public class SongLyricsReader
                         {
                             return Line.fromString(line, m_dictionary);
                         }
-                        catch (Exception e)
+                        catch (NoPronunciationException e)
+                        {
+                            // expected, kinda
+                            return null;
+                        }
+                        catch (RuntimeException e)
                         {
                             Logging.debug(e.getMessage(), e);
                             numErrors.incrementAndGet();

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * @author jbutler
  * @since July 2018
  */
-public class RhymeMap
+public final class RhymeMap
 {
     @Nonnull
     private final Dictionary m_dictionary;

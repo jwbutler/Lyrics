@@ -6,7 +6,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -76,7 +75,7 @@ public record Syllable
         return Arrays.stream(spaceSeparatedPhonemes.split(" "))
             .map(Phoneme::valueOf)
             .collect(Collectors.collectingAndThen(Collectors.toList(),
-                p -> new Syllable(p, Optional.ofNullable(emphasis).orElse(Emphasis.WEAK))
+                p -> new Syllable(p, Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS))
             ));
     }
 
@@ -84,6 +83,6 @@ public record Syllable
     @VisibleForTesting
     public static Syllable of(@Nonnull String spaceSeparatedPhonemes)
     {
-        return Syllable.of(spaceSeparatedPhonemes, Emphasis.WEAK);
+        return Syllable.of(spaceSeparatedPhonemes, Emphasis.NO_STRESS);
     }
 }

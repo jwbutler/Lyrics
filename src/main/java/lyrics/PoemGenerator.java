@@ -47,8 +47,10 @@ public class PoemGenerator
     @Nonnull
     private List<Line> _generateStanza(@Nonnull List<Meter> lineMeters, @Nonnull List<Character> rhymeScheme)
     {
+        long t1 = System.currentTimeMillis();
         Random RNG = ThreadLocalRandom.current();
         List<Line> lines = new ArrayList<>();
+
         while (lines.size() < lineMeters.size())
         {
             lines.clear();
@@ -82,6 +84,8 @@ public class PoemGenerator
                 }
             }
         }
+        long t2 = System.currentTimeMillis();
+        System.out.println("Generated stanza in " + (t2 - t1) + " ms");
         return lines;
     }
 }

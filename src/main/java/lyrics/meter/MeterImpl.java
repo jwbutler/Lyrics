@@ -9,7 +9,7 @@ import java.util.List;
  * @author jwbutler
  * @since November 2019
  */
-class MeterImpl implements Meter
+final class MeterImpl implements Meter
 {
     @Nonnull
     private final List<Emphasis> m_emphasisList;
@@ -43,14 +43,14 @@ class MeterImpl implements Meter
         for (int i = 0; i < this.getNumSyllables(); i++)
         {
             // Don't allow a strong syllable in a weak position
-            if (lineMeter.getEmphasis(i) == Emphasis.STRONG && this.getEmphasis(i) != Emphasis.STRONG)
+            if (lineMeter.getEmphasis(i) != Emphasis.NO_STRESS && this.getEmphasis(i) == Emphasis.NO_STRESS)
             {
                 return false;
             }
             // Additionally, don't allow a weak syllable in a strong position at the end of the line
             if (i == this.getNumSyllables() - 1)
             {
-                if (lineMeter.getEmphasis(i) == Emphasis.WEAK && this.getEmphasis(i) == Emphasis.STRONG)
+                if (lineMeter.getEmphasis(i) == Emphasis.NO_STRESS && this.getEmphasis(i) != Emphasis.NO_STRESS)
                 {
                     return false;
                 }

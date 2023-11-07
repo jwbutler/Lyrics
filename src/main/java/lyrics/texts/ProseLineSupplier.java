@@ -2,6 +2,7 @@ package lyrics.texts;
 
 import com.google.common.base.Preconditions;
 import lyrics.Logging;
+import lyrics.NoPronunciationException;
 import lyrics.RhymeMap;
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
@@ -178,10 +179,13 @@ public class ProseLineSupplier implements LineSupplier
                 }
             }
         }
-        catch (Exception e)
+        catch (NoPronunciationException e)
         {
             // just skip it and continue
-            Logging.debug("Error computing lines: ", e);
+        }
+        catch (RuntimeException e)
+        {
+            Logging.error("Error computing lines: ", e);
         }
         return lines;
     }

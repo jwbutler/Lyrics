@@ -32,7 +32,7 @@ public interface Meter
     static Meter of(int... emphasisValues)
     {
         List<Emphasis> emphasisList = Arrays.stream(emphasisValues)
-            .mapToObj(i -> i == 1 ? Emphasis.STRONG : Emphasis.WEAK)
+            .mapToObj(Emphasis::fromValue)
             .toList();
 
         return new MeterImpl(emphasisList);

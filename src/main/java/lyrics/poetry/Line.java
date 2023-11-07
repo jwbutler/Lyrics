@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
+import lyrics.NoPronunciationException;
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
@@ -24,7 +25,10 @@ public record Line
      * @param string A space-separated list of words
      */
     @Nonnull
-    public static Line fromString(@Nonnull String string, @Nonnull Dictionary dictionary)
+    public static Line fromString(
+        @Nonnull String string,
+        @Nonnull Dictionary dictionary
+    ) throws NoPronunciationException
     {
         List<String> words = Stream.of(string.split("\\s+"))
             .map(StringUtils::alphanumericOnly)
@@ -47,10 +51,13 @@ public record Line
     }
 
     /**
-     * @throws IllegalStateException if a word doesn't have a pronunciation in the dictionary
+     * @throws NoPronunciationException if a word doesn't have a pronunciation in the dictionary
      */
     @Nonnull
-    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull Dictionary dictionary)
+    private static List<Syllable> _computeSyllables(
+        @Nonnull List<String> words,
+        @Nonnull Dictionary dictionary
+    ) throws NoPronunciationException
     {
         List<List<Pronunciation>> pronunciations = words.stream()
             .map(dictionary::getPronunciations)
@@ -60,7 +67,7 @@ public record Line
         {
             if (pronunciations.get(i).isEmpty())
             {
-                throw new IllegalStateException("No pronunciations found for " + words.get(i));
+                throw new NoPronunciationException(words.get(i));
             }
         }
 

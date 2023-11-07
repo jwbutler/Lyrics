@@ -89,7 +89,7 @@ public record Pronunciation
             index--;
         }
 
-        syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.WEAK)));
+        syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS)));
         emphasis = null;
 
         // Now find any number of (consonant-vowel) syllables.
@@ -118,7 +118,7 @@ public record Pronunciation
                 phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
                 index--;
             }
-            syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.WEAK)));
+            syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS)));
             emphasis = null;
         }
         return Lists.reverse(syllables);

@@ -1,6 +1,7 @@
 package lyrics.readers;
 
 import lyrics.Logging;
+import lyrics.NoPronunciationException;
 import lyrics.texts.LineSupplier;
 import lyrics.texts.ProseLineSupplier;
 import lyrics.utils.FileUtils;
@@ -55,9 +56,13 @@ public class GutenbergReader
                 {
                     return Line.fromString(s, m_dictionary);
                 }
-                catch (Exception e)
+                catch (NoPronunciationException e)
                 {
-                    Logging.debug(e.getMessage(), e);
+                    return null;
+                }
+                catch (RuntimeException e)
+                {
+                    Logging.info(e.getMessage(), e);
                     return null;
                 }
             })
