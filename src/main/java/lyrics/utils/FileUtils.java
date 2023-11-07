@@ -19,7 +19,7 @@ public class FileUtils
     public static BufferedReader getBufferedReader(@Nonnull String filename)
     {
         return Optional.of("/" + filename)
-            .map(System.class::getResourceAsStream)
+            .map(FileUtils.class::getResourceAsStream)
             .map(InputStreamReader::new)
             .map(BufferedReader::new)
             .orElseThrow(() -> new RuntimeException("Failed to read file " + filename));

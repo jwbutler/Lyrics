@@ -51,7 +51,8 @@ public class LyricsApp
     {
         if (args.length == 0)
         {
-            return new SongPattern(ImmutableList.of(StanzaPattern.CAVEMAN), 100);
+            //return new SongPattern(ImmutableList.of(StanzaPattern.CAVEMAN), 100);
+            return new SongPattern(ImmutableList.of(StanzaPattern.SPACE_DAGGER), 100);
         }
         String pattern = args[0];
 

@@ -185,6 +185,15 @@ public class StanzaPattern
         ),
         ImmutableList.of('A', 'B', 'A', 'B')
     );
+    public static final StanzaPattern SPACE_DAGGER = new StanzaPattern(
+        ImmutableList.of(
+            Meter.of(1, 0, 1, 0, 0, 1, 0),
+            Meter.of(1, 0, 1, 0, 0, 1, 0, 1),
+            Meter.of(1, 0, 1, 0, 0, 1, 0),
+            Meter.of(1, 0, 1, 0, 0, 1, 0, 1)
+        ),
+        ImmutableList.of('A', 'B', 'A', 'B')
+    );
 
     @Nonnull
     private final ImmutableList<Meter> m_meters;
