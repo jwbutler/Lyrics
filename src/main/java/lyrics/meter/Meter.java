@@ -1,6 +1,5 @@
 package lyrics.meter;
 
-import com.google.common.annotations.VisibleForTesting;
 import lyrics.linguistics.Emphasis;
 import lyrics.linguistics.Syllable;
 

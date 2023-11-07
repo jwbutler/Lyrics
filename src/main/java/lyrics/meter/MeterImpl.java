@@ -1,6 +1,5 @@
 package lyrics.meter;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.linguistics.Emphasis;
 
 import javax.annotation.Nonnull;
@@ -17,7 +16,7 @@ class MeterImpl implements Meter
 
     MeterImpl(@Nonnull List<Emphasis> emphasisList)
     {
-        m_emphasisList = ImmutableList.copyOf(emphasisList);
+        m_emphasisList = List.copyOf(emphasisList);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package lyrics.readers;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.Logging;
 import lyrics.texts.LineSupplier;
 import lyrics.texts.ProseLineSupplier;
@@ -43,14 +42,12 @@ public class GutenbergReader
     {
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()
-            .parallel()
             .map(String::trim)
             .collect(Collectors.toList());
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
         List<Line> mappedLines = lines.stream()
-            .parallel()
             .map(s ->
             {
                 try
@@ -103,7 +100,7 @@ public class GutenbergReader
             }
         }
 
-        return ImmutableList.copyOf(allLines.subList(firstLineIndex, lastLineIndex + 1));
+        return List.copyOf(allLines.subList(firstLineIndex, lastLineIndex + 1));
     }
 
     @Nonnull
@@ -111,7 +108,6 @@ public class GutenbergReader
     {
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()
-            .parallel()
             .map(String::trim)
             .collect(Collectors.toList());
 

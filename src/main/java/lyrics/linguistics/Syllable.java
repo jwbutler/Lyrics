@@ -1,7 +1,6 @@
 package lyrics.linguistics;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -34,7 +33,7 @@ public class Syllable
 
     public Syllable(@Nonnull List<Phoneme> phonemes, @Nonnull Emphasis emphasis)
     {
-        m_phonemes = ImmutableList.copyOf(phonemes);
+        m_phonemes = List.copyOf(phonemes);
         m_type = _computeType(phonemes);
         m_emphasis = emphasis;
     }

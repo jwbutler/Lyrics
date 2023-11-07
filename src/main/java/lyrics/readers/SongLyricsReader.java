@@ -1,14 +1,5 @@
 package lyrics.readers;
 
-import lyrics.Logging;
-import lyrics.texts.PoetryLineSupplier;
-import lyrics.dictionaries.Dictionary;
-import lyrics.poetry.Line;
-import lyrics.utils.FileUtils;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-
-import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -17,6 +8,15 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+
+import lyrics.Logging;
+import lyrics.dictionaries.Dictionary;
+import lyrics.poetry.Line;
+import lyrics.texts.PoetryLineSupplier;
+import lyrics.utils.FileUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 
 /**
  * Reader interface intended to parse this file:
@@ -27,6 +27,7 @@ import java.util.stream.Stream;
  */
 public class SongLyricsReader
 {
+    public static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.builder().setSkipHeaderRecord(true).build();
     @Nonnull
     private final Dictionary m_dictionary;
 
@@ -41,17 +42,16 @@ public class SongLyricsReader
         System.out.println("SongLyricsReader - Reading song lyrics...");
         try (
             BufferedReader reader = FileUtils.getBufferedReader(filename);
-            CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord())
+            CSVParser parser = new CSVParser(reader, CSV_FORMAT)
         )
         {
             long t1 = System.currentTimeMillis();
-            AtomicInteger numErrors = new AtomicInteger(0);
+            var numErrors = new AtomicInteger(0);
 
             List<Line> lines = parser.getRecords()
-                .parallelStream()
+                .stream()
                 .map(r -> r.get(3))
-                .flatMap(this::_splitToLines)
-                .parallel()
+                .flatMap(SongLyricsReader::_splitToLines)
                 .map(line ->
                 {
                     try
@@ -81,7 +81,7 @@ public class SongLyricsReader
     }
 
     @Nonnull
-    private Stream<String> _splitToLines(@Nonnull String string)
+    private static Stream<String> _splitToLines(@Nonnull String string)
     {
         return Arrays.stream(string.split("\\s*\n\\s*"));
     }

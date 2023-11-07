@@ -1,6 +1,5 @@
 package lyrics;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.dictionaries.CMUDictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Poem;
@@ -23,7 +22,7 @@ import java.util.stream.IntStream;
  */
 public class LyricsApp
 {
-    public static void main(String[] args) throws IOException, InterruptedException
+    public static void main(String[] args)
     {
         SongPattern songPattern = _readSongPattern(args);
 
@@ -36,7 +35,7 @@ public class LyricsApp
         LineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
         //ILineSupplier urbanDictionary = urbanDictionaryReader.readFileAsPoetry("urbandict-word-def.csv");
 
-        PoemGenerator poemGenerator = new PoemGenerator(dictionary, ImmutableList.of(
+        PoemGenerator poemGenerator = new PoemGenerator(List.of(
             //GutenbergText.ARISTOTLE_POETICS.getLineSupplier(gutenbergReader),
             //GutenbergText.KANT_CRITIQUE_OF_PURE_REASON.getLineSupplier(gutenbergReader),
             songLyrics
@@ -51,13 +50,13 @@ public class LyricsApp
     {
         if (args.length == 0)
         {
-            //return new SongPattern(ImmutableList.of(StanzaPattern.CAVEMAN), 100);
-            return new SongPattern(ImmutableList.of(StanzaPattern.SPACE_DAGGER), 100);
+            //return new SongPattern(List.of(StanzaPattern.CAVEMAN), 100);
+            return new SongPattern(List.of(StanzaPattern.SPACE_DAGGER), 100);
         }
         String pattern = args[0];
 
-        ImmutableList.Builder<Meter> meters = new ImmutableList.Builder<>();
-        ImmutableList.Builder<Character> rhymes = new ImmutableList.Builder<>();
+        List<Meter> meters = new ArrayList<>();
+        List<Character> rhymes = new ArrayList<>();
         ArrayList<Integer> meter = new ArrayList<>();
 
         boolean lastCharWasNumber = false;
@@ -87,30 +86,27 @@ public class LyricsApp
             }
         }
 
-        StanzaPattern stanzaPattern = new StanzaPattern(meters.build(), rhymes.build());
+        StanzaPattern stanzaPattern = new StanzaPattern(meters, rhymes);
         return new SongPattern(stanzaPattern, 20);
     }
 
     private static void _writeSong(@Nonnull PoemGenerator poemGenerator, @Nonnull SongPattern songPattern)
     {
-        IntStream.range(0, songPattern.getNumVerses()).parallel().forEach(i ->
+        IntStream.range(0, songPattern.getNumVerses()).forEach(i ->
         {
-            ImmutableList.Builder<Poem> builder = new ImmutableList.Builder<>();
+            List<Poem> stanzas = new ArrayList<>();
             // these need to be inserted in order
             for (int j = 0; j < songPattern.getStanzaPatterns().size(); j++)
             {
                 StanzaPattern stanza = songPattern.getStanzaPatterns().get(j);
                 Poem poem = poemGenerator.generatePoem(stanza.getMeters(), stanza.getRhymeScheme(), 1);
-                builder.add(poem);
+                stanzas.add(poem);
             }
-            List<Poem> stanzas = builder.build();
-            synchronized (LyricsApp.class)
+
+            for (Poem poem : stanzas)
             {
-                for (Poem poem : stanzas)
-                {
-                    System.out.println(poem);
-                    System.out.println();
-                }
+                System.out.println(poem);
+                System.out.println();
             }
         });
     }

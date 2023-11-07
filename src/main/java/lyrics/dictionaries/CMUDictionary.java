@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -31,21 +32,22 @@ public class CMUDictionary implements Dictionary
         long startTime = System.currentTimeMillis();
         m_words = FileUtils.getBufferedReader("cmudict.0.7a")
             .lines()
-            .parallel()
             .map(CMUDictionary::_parseLine)
-            .filter(p -> p != null && p.getSecond() != null)
+            .filter(Objects::nonNull)
             .collect(Collectors.groupingBy(Pair::getFirst, ConcurrentHashMap::new, Collectors.mapping(Pair::getSecond, Collectors.toList())));
         long endTime = System.currentTimeMillis();
         System.out.printf("CMUDictionary - Loaded %d words in %d ms\n", m_words.size(), (endTime - startTime));
     }
 
     @Nonnull
+    @Override
     public Set<String> getWords()
     {
         return m_words.keySet();
     }
 
     @Nonnull
+    @Override
     public List<Pronunciation> getPronunciations(@Nonnull String key)
     {
         return m_words.getOrDefault(key.toUpperCase(), Collections.emptyList());

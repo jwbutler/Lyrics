@@ -1,8 +1,6 @@
 package lyrics;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import lyrics.dictionaries.Dictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Line;
 import lyrics.poetry.Poem;
@@ -23,30 +21,27 @@ import java.util.stream.IntStream;
 public class PoemGenerator
 {
     @Nonnull
-    private final Dictionary m_dictionary;
-    @Nonnull
     private final List<LineSupplier> m_lineSuppliers;
 
-    public PoemGenerator(@Nonnull Dictionary dictionary, @Nonnull List<LineSupplier> lineSuppliers)
+    public PoemGenerator(@Nonnull List<LineSupplier> lineSuppliers)
     {
-        m_dictionary = dictionary;
-        m_lineSuppliers = ImmutableList.copyOf(lineSuppliers);
+        m_lineSuppliers = lineSuppliers;
     }
 
     @Nonnull
     public Poem generatePoem(@Nonnull List<Meter> lineMeters, @Nonnull List<Character> rhymeScheme, int numStanzas)
     {
-        Preconditions.checkArgument(lineMeters.size() > 0 && rhymeScheme.size() > 0);
+        Preconditions.checkArgument(!lineMeters.isEmpty());
+        Preconditions.checkArgument(!rhymeScheme.isEmpty());
         Preconditions.checkArgument(lineMeters.size() == rhymeScheme.size());
-        ImmutableList.Builder<List<Line>> stanzas = new ImmutableList.Builder<>();
-        IntStream.range(0, numStanzas)
-            .parallel()
-            .forEach(i ->
-            {
-                List<Line> stanza = _generateStanza(lineMeters, rhymeScheme);
-                stanzas.add(stanza);
-            });
-        return new Poem(stanzas.build());
+        List<List<Line>> stanzas = new ArrayList<>();
+
+        for (int i = 0; i < numStanzas; i++)
+        {
+            List<Line> stanza = _generateStanza(lineMeters, rhymeScheme);
+            stanzas.add(stanza);
+        }
+        return new Poem(stanzas);
     }
 
     @Nonnull
@@ -60,15 +55,14 @@ public class PoemGenerator
             for (int i = 0; i < lineMeters.size(); i++)
             {
                 LineSupplier lineSupplier = m_lineSuppliers.get(RNG.nextInt(m_lineSuppliers.size()));
-                ImmutableList.Builder<Line> builder = new ImmutableList.Builder<>();
+                List<Line> previousLines = new ArrayList<>();
                 for (int j = 0; j < i; j++)
                 {
                     if (rhymeScheme.get(j) == rhymeScheme.get(i))
                     {
-                        builder.add(lines.get(j));
+                        previousLines.add(lines.get(j));
                     }
                 }
-                List<Line> previousLines = builder.build();
                 if (previousLines.isEmpty())
                 {
                     lines.add(lineSupplier.getLine(lineMeters.get(i)));
@@ -88,6 +82,6 @@ public class PoemGenerator
                 }
             }
         }
-        return ImmutableList.copyOf(lines);
+        return lines;
     }
 }

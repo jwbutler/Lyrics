@@ -1,6 +1,5 @@
 package lyrics.poetry;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
@@ -29,7 +28,7 @@ public class Line
      */
     public Line(@Nonnull String string, @Nonnull Dictionary dictionary) throws Exception
     {
-        m_words = ImmutableList.copyOf(Stream.of(string.split("\\s+"))
+        m_words = List.copyOf(Stream.of(string.split("\\s+"))
             .map(StringUtils::alphanumericOnly)
             .collect(Collectors.toList()));
         m_syllables = _computeSyllables(m_words, dictionary);
@@ -58,7 +57,7 @@ public class Line
      * @throws IllegalStateException if a word doesn't have a pronunciation in the dictionary
      */
     @Nonnull
-    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull Dictionary dictionary) throws Exception
+    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull Dictionary dictionary)
     {
         List<List<Pronunciation>> pronunciations = words.stream()
             .map(dictionary::getPronunciations)

@@ -4,6 +4,7 @@ import lyrics.dictionaries.Dictionary;
 import lyrics.utils.RhymeUtils;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +24,7 @@ public class RhymeMap
     public RhymeMap(@Nonnull Dictionary dictionary)
     {
         m_dictionary = dictionary;
-        m_stringToRhymes = new ConcurrentHashMap<>();
+        m_stringToRhymes = new HashMap<>();
     }
 
     /**
@@ -50,7 +51,7 @@ public class RhymeMap
     private void _computeRhymes(@Nonnull String key)
     {
         Set<String> rhymes = m_dictionary.getWords()
-            .parallelStream()
+            .stream()
             .filter(p -> RhymeUtils.anyPronunciationsRhyme(key, p, m_dictionary))
             .collect(Collectors.toSet());
         rhymes.forEach(rhymingWord -> m_stringToRhymes.put(rhymingWord, rhymes));

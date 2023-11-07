@@ -1,7 +1,6 @@
 package lyrics.linguistics;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lyrics.Logging;
 
@@ -13,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * Represents a particular pronunciation of a word.
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 public class Pronunciation
 {
     @Nonnull
-    private final ImmutableList<Syllable> m_syllables;
+    private final List<Syllable> m_syllables;
 
     public Pronunciation(@Nonnull String spaceSeparatedPhonemes)
     {
@@ -41,10 +42,10 @@ public class Pronunciation
     }
 
     @Nonnull
-    private static ImmutableList<Syllable> _computeSyllables(@Nonnull List<PhonemeWithEmphasis> phonemesWithEmphasis)
+    private static List<Syllable> _computeSyllables(@Nonnull List<PhonemeWithEmphasis> phonemesWithEmphasis)
     {
-        // This Builder is in reverse order.  Reverse it after building.
-        ImmutableList.Builder<Syllable> syllables = new ImmutableList.Builder<>();
+        // This list is in reverse order.  Reverse it after building.
+        List<Syllable> syllables = new ArrayList<>();
 
         // Compute the first syllable separately.
         // Include the final consonant cluster, if it exists;
@@ -119,7 +120,7 @@ public class Pronunciation
             syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.WEAK)));
             emphasis = null;
         }
-        return syllables.build().reverse();
+        return Lists.reverse(syllables);
     }
 
     @Nonnull
@@ -149,7 +150,7 @@ public class Pronunciation
         {
             try
             {
-                emphasis = Emphasis.fromValue(Integer.valueOf(string.replaceAll("[A-Z]", "")));
+                emphasis = Emphasis.fromValue(parseInt(string.replaceAll("[A-Z]", "")));
             }
             catch (NumberFormatException e)
             {

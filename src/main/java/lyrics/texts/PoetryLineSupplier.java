@@ -1,7 +1,6 @@
 package lyrics.texts;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import lyrics.RhymeMap;
 import lyrics.dictionaries.Dictionary;
 import lyrics.meter.Meter;
@@ -41,7 +40,7 @@ public class PoetryLineSupplier implements LineSupplier
 
     public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull List<Line> lines)
     {
-        m_lines = ImmutableList.copyOf(lines);
+        m_lines = List.copyOf(lines);
         m_rhymeMap = new RhymeMap(dictionary);
         m_linesByMeter = new ConcurrentHashMap<>();
     }
@@ -58,8 +57,8 @@ public class PoetryLineSupplier implements LineSupplier
         }
 
         List<Line> lines = matchingLineMap.values()
-            .parallelStream()
-            .flatMap(List::parallelStream)
+            .stream()
+            .flatMap(List::stream)
             .collect(Collectors.toList());
 
         Random RNG = ThreadLocalRandom.current();
@@ -85,14 +84,13 @@ public class PoetryLineSupplier implements LineSupplier
         Map<String, List<Line>> lines = _getLinesByMeter(meter);
 
         List<Line> matchingLines = lines.entrySet()
-            .parallelStream()
+            .stream()
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
             .flatMap(List::stream)
             .collect(Collectors.toList());
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
-            .parallel()
             .boxed()
             .collect(Collectors.toList());
 
@@ -103,9 +101,9 @@ public class PoetryLineSupplier implements LineSupplier
         {
             Line line = matchingLines.get(i);
             String lastWord = line.getWords().get(line.getWords().size() - 1);
-            boolean differentLastWord = previousLines.parallelStream()
+            boolean differentLastWord = previousLines.stream()
                 .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
-            boolean matchesPreviousLine = previousLines.parallelStream()
+            boolean matchesPreviousLine = previousLines.stream()
                 .anyMatch(line::matches);
 
             if (!matchesPreviousLine && differentLastWord)
@@ -123,12 +121,10 @@ public class PoetryLineSupplier implements LineSupplier
     private Map<String, List<Line>> _getLinesByMeter(@Nonnull Meter meter)
     {
         return m_linesByMeter.computeIfAbsent(meter, m ->
-        {
-            return m_lines.parallelStream()
+            m_lines.stream()
                 .filter(line -> m.fitsLineMeter(line.getMeter()))
                 .collect(Collectors.groupingBy(
                     line -> line.getWords().get(line.getWords().size() - 1).toUpperCase()
-                ));
-        });
+                )));
     }
 }

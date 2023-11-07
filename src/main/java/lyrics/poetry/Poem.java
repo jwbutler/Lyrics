@@ -1,7 +1,6 @@
 package lyrics.poetry;
 
 import com.google.common.base.Preconditions;
-import lyrics.Pair;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -17,19 +16,12 @@ public class Poem
     @Nonnull
     private final List<List<Line>> m_stanzas;
 
-    @Nonnull
-    private final Pair<Integer, Integer> m_meter;
-
     public Poem(@Nonnull List<List<Line>> stanzas)
     {
         Preconditions.checkArgument(!stanzas.isEmpty());
         Preconditions.checkArgument(stanzas.stream().allMatch(Objects::nonNull));
         Preconditions.checkArgument(stanzas.stream().allMatch(stanza -> stanza.size() >= 2));
         m_stanzas = stanzas;
-        m_meter = Pair.of(
-            stanzas.get(0).get(0).getMeter().getNumSyllables(),
-            stanzas.get(0).get(1).getMeter().getNumSyllables()
-        );
     }
 
     @Nonnull

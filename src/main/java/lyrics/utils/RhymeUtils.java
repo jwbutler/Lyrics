@@ -1,6 +1,5 @@
 package lyrics.utils;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.linguistics.Phoneme;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
@@ -75,17 +74,15 @@ public class RhymeUtils
 
     /**
      * TODO move me?
-     * @param phonemes
-     * @return
      */
     @Nonnull
     public static List<Phoneme> stripFinalS(@Nonnull List<Phoneme> phonemes)
     {
         if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.get(phonemes.size() - 1)))
         {
-            return ImmutableList.copyOf(phonemes.subList(0, phonemes.size() - 1));
+            return List.copyOf(phonemes.subList(0, phonemes.size() - 1));
         }
-        return ImmutableList.copyOf(phonemes);
+        return List.copyOf(phonemes);
     }
 
     @Nonnull
@@ -97,13 +94,16 @@ public class RhymeUtils
         {
             index++;
         }
-        return ImmutableList.copyOf(phonemes.subList(index, phonemes.size()));
+        return List.copyOf(phonemes.subList(index, phonemes.size()));
     }
 
     public static boolean anyPronunciationsRhyme(@Nonnull String first, @Nonnull String second, @Nonnull Dictionary dictionary)
     {
         List<Pronunciation> firstList = dictionary.getPronunciations(first);
         List<Pronunciation> secondList = dictionary.getPronunciations(second);
-        return firstList.parallelStream().anyMatch(p -> secondList.parallelStream().anyMatch(q -> rhymesWith(p, q)));
+        return firstList.stream()
+            .anyMatch(p -> secondList.stream()
+                .anyMatch(q -> rhymesWith(p, q))
+            );
     }
 }
