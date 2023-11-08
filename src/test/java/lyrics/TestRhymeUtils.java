@@ -1,12 +1,15 @@
 package lyrics;
 
+import lyrics.linguistics.Phoneme;
 import lyrics.linguistics.Pronunciation;
 import lyrics.utils.RhymeUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.List;
 import java.util.stream.Stream;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -42,5 +45,22 @@ public class TestRhymeUtils
         assertFalse(RhymeUtils.rhymesWith(say, plays));
         assertFalse(RhymeUtils.rhymesWith(amaze, amazing));
         assertFalse(RhymeUtils.rhymesWith(good, giving));
+    }
+    
+    @Test
+    public void testStripFinalS()
+    {
+        var input = List.of(
+            Phoneme.AA,
+            Phoneme.S,
+            Phoneme.K,
+            Phoneme.S
+        );
+        var expected = List.of(
+            Phoneme.AA,
+            Phoneme.S,
+            Phoneme.K
+        );
+        assertEquals(RhymeUtils.stripFinalS(input), expected);
     }
 }

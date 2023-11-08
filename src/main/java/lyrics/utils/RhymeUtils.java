@@ -9,6 +9,8 @@ import javax.annotation.Nonnull;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static lyrics.utils.StringUtils.isUpperCase;
 
@@ -80,7 +82,7 @@ public final class RhymeUtils
     @Nonnull
     public static List<Phoneme> stripFinalS(@Nonnull List<Phoneme> phonemes)
     {
-        if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.get(phonemes.size() - 1)))
+        if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.getLast()))
         {
             return phonemes.subList(0, phonemes.size() - 1);
         }
