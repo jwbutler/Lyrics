@@ -1,7 +1,5 @@
 package lyrics.linguistics;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -80,7 +78,7 @@ public record Syllable
     }
 
     @Nonnull
-    @VisibleForTesting
+    // @VisibleForTesting
     public static Syllable of(@Nonnull String spaceSeparatedPhonemes)
     {
         return Syllable.of(spaceSeparatedPhonemes, Emphasis.NO_STRESS);

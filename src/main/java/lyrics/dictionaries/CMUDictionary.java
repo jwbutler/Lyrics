@@ -2,43 +2,51 @@ package lyrics.dictionaries;
 
 import lyrics.utils.FileUtils;
 import lyrics.Logging;
-import lyrics.Pair;
 import lyrics.linguistics.Pronunciation;
 import lyrics.utils.StringUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @author jbutler
  * @since July 2018
  */
-public class CMUDictionary implements Dictionary
+public final class CMUDictionary implements Dictionary
 {
     private static final String SPLIT_PATTERN = "  ";
 
-    private final Map<String, List<Pronunciation>> m_words;
+    @Nonnull
+    private final Map<String, Set<Pronunciation>> m_words;
 
     public CMUDictionary()
     {
-        System.out.println("CMUDictionary - Loading...");
+        Logging.info("CMUDictionary - Loading...");
         long startTime = System.currentTimeMillis();
-        m_words = FileUtils.getBufferedReader("cmudict.0.7a")
+        m_words = new HashMap<>();
+        
+        var parsedLines = FileUtils.getBufferedReader("cmudict.0.7a")
             .lines()
             .map(CMUDictionary::_parseLine)
             .filter(Objects::nonNull)
-            .collect(Collectors.groupingBy(
-                Pair::first,
-                Collectors.mapping(Pair::second, Collectors.toList())
-            ));
+            .toList();
+        
+        for (var parsedLine : parsedLines)
+        {
+            var word = parsedLine.word();
+            var pronunciation = parsedLine.pronunciation();
+            m_words.computeIfAbsent(word, x -> new HashSet<>()).add(pronunciation);
+        }
+        
         long endTime = System.currentTimeMillis();
-        System.out.printf("CMUDictionary - Loaded %d words in %d ms\n", m_words.size(), (endTime - startTime));
+        Logging.infoF("CMUDictionary - Loaded %d words in %d ms\n", m_words.size(), (endTime - startTime));
     }
 
     @Nonnull
@@ -50,9 +58,9 @@ public class CMUDictionary implements Dictionary
 
     @Nonnull
     @Override
-    public List<Pronunciation> getPronunciations(@Nonnull String key)
+    public Set<Pronunciation> getPronunciations(@Nonnull String key)
     {
-        return m_words.getOrDefault(key.toUpperCase(), Collections.emptyList());
+        return m_words.getOrDefault(key, emptySet());
     }
 
     /**
@@ -60,16 +68,20 @@ public class CMUDictionary implements Dictionary
      * or null if it's not a valid line
      */
     @CheckForNull
-    private static Pair<String, Pronunciation> _parseLine(@Nonnull String line)
+    private static ParsedLine _parseLine(@Nonnull String line)
     {
         try
         {
             if (_isValidLine(line))
             {
                 int index = line.indexOf(SPLIT_PATTERN);
-                String key = StringUtils.alphabeticOnly(line.substring(0, index));
+                String word = StringUtils.alphabeticOnly(line.substring(0, index)).toUpperCase();
+                String phonemes = line.substring(index + 2);
 
-                return Pair.of(key, Pronunciation.fromPhonemes(line.substring(index + 2, line.length())));
+                return new ParsedLine(
+                    word,
+                    Pronunciation.fromPhonemes(phonemes)
+                );
             }
             else
             {
@@ -92,4 +104,9 @@ public class CMUDictionary implements Dictionary
     {
         return line.matches("^[a-zA-Z].*");
     }
+
+    /**
+     * @param word Must be uppercase
+     */
+    private record ParsedLine(@Nonnull String word, @Nonnull Pronunciation pronunciation) {}
 }

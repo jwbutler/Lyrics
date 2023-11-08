@@ -1,5 +1,9 @@
 package lyrics;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
+
 import lyrics.dictionaries.CMUDictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Poem;
@@ -9,18 +13,13 @@ import lyrics.songs.StanzaPattern;
 import lyrics.songs.StanzaPatterns;
 import lyrics.texts.LineSupplier;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
-
 /**
  * Main entry point.
  *
  * @author jbutler
  * @since August 2018
  */
-public class LyricsApp
+public final class LyricsApp
 {
     public static void main(String[] args)
     {
@@ -92,22 +91,22 @@ public class LyricsApp
 
     private static void _writeSong(@Nonnull PoemGenerator poemGenerator, @Nonnull SongPattern songPattern)
     {
-        IntStream.range(0, songPattern.numVerses()).forEach(i ->
+        for (int i = 0; i < songPattern.numVerses(); i++)
         {
             List<Poem> stanzas = new ArrayList<>();
             // these need to be inserted in order
             for (int j = 0; j < songPattern.stanzaPatterns().size(); j++)
             {
-                StanzaPattern stanza = songPattern.stanzaPatterns().get(j);
-                Poem poem = poemGenerator.generatePoem(stanza.meters(), stanza.rhymeScheme(), 1);
-                stanzas.add(poem);
+                StanzaPattern stanzaPattern = songPattern.stanzaPatterns().get(j);
+                Poem stanza = poemGenerator.generatePoem(stanzaPattern.meters(), stanzaPattern.rhymeScheme(), 1);
+                stanzas.add(stanza);
             }
 
-            for (Poem poem : stanzas)
+            for (Poem stanza : stanzas)
             {
-                System.out.println(poem);
+                System.out.println(stanza);
                 System.out.println();
             }
-        });
+        }
     }
 }

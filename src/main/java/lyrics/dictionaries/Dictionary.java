@@ -12,6 +12,15 @@ import java.util.Set;
  */
 public interface Dictionary
 {
-  @Nonnull Set<String> getWords();
-  @Nonnull List<Pronunciation> getPronunciations(@Nonnull String word);
+    /**
+     * @return a set of words, all uppercase
+     */
+    @Nonnull
+    Set<String> getWords();
+
+    /**
+     * @param word Must be upper-case
+     */
+    @Nonnull
+    Set<Pronunciation> getPronunciations(@Nonnull String word);
 }

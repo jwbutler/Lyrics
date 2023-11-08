@@ -8,16 +8,18 @@ import lyrics.dictionaries.Dictionary;
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+
+import static lyrics.utils.StringUtils.isUpperCase;
 
 /**
  * @author jbutler
  * @since July 2018
  */
-public class RhymeUtils
+public final class RhymeUtils
 {
-    /**
-     * Two words rhyme if:
-     */
+    private RhymeUtils() {}
+
     public static boolean rhymesWith(@Nonnull Pronunciation firstWord, @Nonnull Pronunciation secondWord)
     {
         int numSyllablesToMatch = Math.min(firstWord.syllables().size(), 2);
@@ -80,9 +82,9 @@ public class RhymeUtils
     {
         if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.get(phonemes.size() - 1)))
         {
-            return List.copyOf(phonemes.subList(0, phonemes.size() - 1));
+            return phonemes.subList(0, phonemes.size() - 1);
         }
-        return List.copyOf(phonemes);
+        return phonemes;
     }
 
     @Nonnull
@@ -97,13 +99,20 @@ public class RhymeUtils
         return phonemes.subList(index, phonemes.size());
     }
 
+    /**
+     * @param first Must be uppercase
+     * @param second Must be uppercase
+     */
     public static boolean anyPronunciationsRhyme(@Nonnull String first, @Nonnull String second, @Nonnull Dictionary dictionary)
     {
-        List<Pronunciation> firstList = dictionary.getPronunciations(first);
-        List<Pronunciation> secondList = dictionary.getPronunciations(second);
-        return firstList.stream()
-            .anyMatch(p -> secondList.stream()
-                .anyMatch(q -> rhymesWith(p, q))
-            );
+        assert isUpperCase(first);
+        assert isUpperCase(second);
+
+        Set<Pronunciation> firstSet = dictionary.getPronunciations(first);
+        Set<Pronunciation> secondSet = dictionary.getPronunciations(second);
+
+        return firstSet.stream().anyMatch(p -> 
+            secondSet.stream().anyMatch(q -> rhymesWith(p, q))
+        );
     }
 }

@@ -35,15 +35,15 @@ public class TestPronunciation
 
         // Creation
         word = Pronunciation.fromPhonemes("K R IY0 EY1 SH AH0 N");
-        expectedSyllables = List.of(Syllable.of("K R IY", Emphasis.WEAK),
-            Syllable.of("EY", Emphasis.STRONG),
-            Syllable.of("SH AH N", Emphasis.WEAK)
+        expectedSyllables = List.of(Syllable.of("K R IY", Emphasis.NO_STRESS),
+            Syllable.of("EY", Emphasis.PRIMARY_STRESS),
+            Syllable.of("SH AH N", Emphasis.NO_STRESS)
         );
         assertEquals(word.syllables(), expectedSyllables);
 
         // Beings
         word = Pronunciation.fromPhonemes("B IY1 IH0 NG Z");
-        expectedSyllables = List.of(Syllable.of("B IY", Emphasis.STRONG), Syllable.of("IH NG Z", Emphasis.WEAK));
+        expectedSyllables = List.of(Syllable.of("B IY", Emphasis.PRIMARY_STRESS), Syllable.of("IH NG Z", Emphasis.NO_STRESS));
         assertEquals(word.syllables(), expectedSyllables);
     }
 }

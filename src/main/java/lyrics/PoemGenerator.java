@@ -1,6 +1,5 @@
 package lyrics;
 
-import com.google.common.base.Preconditions;
 import lyrics.meter.Meter;
 import lyrics.poetry.Line;
 import lyrics.poetry.Poem;
@@ -12,13 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.IntStream;
+
+import static lyrics.utils.Preconditions.checkArgument;
 
 /**
  * @author jbutler
  * @since July 2018
  */
-public class PoemGenerator
+public final class PoemGenerator
 {
     @Nonnull
     private final List<LineSupplier> m_lineSuppliers;
@@ -31,9 +31,9 @@ public class PoemGenerator
     @Nonnull
     public Poem generatePoem(@Nonnull List<Meter> lineMeters, @Nonnull List<Character> rhymeScheme, int numStanzas)
     {
-        Preconditions.checkArgument(!lineMeters.isEmpty());
-        Preconditions.checkArgument(!rhymeScheme.isEmpty());
-        Preconditions.checkArgument(lineMeters.size() == rhymeScheme.size());
+        checkArgument(!lineMeters.isEmpty());
+        checkArgument(!rhymeScheme.isEmpty());
+        checkArgument(lineMeters.size() == rhymeScheme.size());
         List<List<Line>> stanzas = new ArrayList<>();
 
         for (int i = 0; i < numStanzas; i++)
@@ -47,7 +47,6 @@ public class PoemGenerator
     @Nonnull
     private List<Line> _generateStanza(@Nonnull List<Meter> lineMeters, @Nonnull List<Character> rhymeScheme)
     {
-        long t1 = System.currentTimeMillis();
         Random RNG = ThreadLocalRandom.current();
         List<Line> lines = new ArrayList<>();
 
@@ -84,8 +83,6 @@ public class PoemGenerator
                 }
             }
         }
-        long t2 = System.currentTimeMillis();
-        System.out.println("Generated stanza in " + (t2 - t1) + " ms");
         return lines;
     }
 }

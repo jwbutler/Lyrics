@@ -11,13 +11,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 
-import com.google.common.base.Preconditions;
 import lyrics.RhymeMap;
 import lyrics.dictionaries.Dictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Line;
+
+import static lyrics.utils.Preconditions.checkArgument;
 
 /**
  * A text consisting of a collection of discrete lines.
@@ -25,8 +25,7 @@ import lyrics.poetry.Line;
  * @author jbutler
  * @since July 2018
  */
-@Immutable
-public class PoetryLineSupplier implements LineSupplier
+public final class PoetryLineSupplier implements LineSupplier
 {
     @Nonnull
     private final Set<Line> m_lines;
@@ -41,7 +40,7 @@ public class PoetryLineSupplier implements LineSupplier
     public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull Set<Line> lines)
     {
         m_lines = lines;
-        m_rhymeMap = new RhymeMap(dictionary);
+        m_rhymeMap = RhymeMap.create(dictionary);
         m_linesByMeter = new HashMap<>();
     }
 
@@ -70,13 +69,11 @@ public class PoetryLineSupplier implements LineSupplier
     @CheckForNull
     public Line getLine(@Nonnull List<Line> previousLines, @Nonnull Meter meter)
     {
-        long t1 = System.currentTimeMillis();
-        Preconditions.checkArgument(!previousLines.isEmpty());
+        checkArgument(!previousLines.isEmpty());
 
         Line firstLine = previousLines.get(0);
         String lastWordOfFirstLine = firstLine.words().getLast();
         Set<String> rhymingWords = m_rhymeMap.getRhymes(lastWordOfFirstLine);
-        long t2 = System.currentTimeMillis();
 
         if (rhymingWords.isEmpty())
         {
@@ -84,7 +81,6 @@ public class PoetryLineSupplier implements LineSupplier
         }
 
         Map<String, Set<Line>> lines = _getLinesByMeter(meter);
-        long t3 = System.currentTimeMillis();
 
         List<Line> matchingLines = lines.entrySet()
             .stream()
@@ -93,13 +89,11 @@ public class PoetryLineSupplier implements LineSupplier
             .flatMap(Set::stream)
             .toList();
 
-        long t4 = System.currentTimeMillis();
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
             .boxed()
             .collect(Collectors.toList());
 
         Collections.shuffle(lineIndices);
-        long t5 = System.currentTimeMillis();
 
         // Switch to a sequential loop so we don't have to evaluate every line
         for (int i : lineIndices)
@@ -113,13 +107,9 @@ public class PoetryLineSupplier implements LineSupplier
 
             if (!matchesPreviousLine && differentLastWord)
             {
-                long t6 = System.currentTimeMillis();
-                System.out.printf("%s (%s %s %s %s %s)\n", (t6-t1),(t2-t1),(t3-t2),(t4-t2),(t5-t4),(t6-t5));
                 return line;
             }
         }
-        long t6 = System.currentTimeMillis();
-        System.out.printf("%s (%s %s %s %s %s)\n", (t6-t1),(t2-t1),(t3-t2),(t4-t2),(t5-t4),(t6-t5));
         return null;
     }
 
@@ -133,7 +123,7 @@ public class PoetryLineSupplier implements LineSupplier
             m_lines.stream()
                 .filter(line -> m.fitsLineMeter(line.getMeter()))
                 .collect(Collectors.groupingBy(
-                    line -> line.words().getLast().toUpperCase(),
+                    line -> line.words().getLast(),
                     Collectors.toSet()
                 )));
     }

@@ -1,6 +1,7 @@
 package lyrics.poetry;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
@@ -14,6 +15,8 @@ import lyrics.utils.StringUtils;
 /**
  * @author jbutler
  * @since July 2018
+ * 
+ * @param words All upper-case
  */
 public record Line
 (
@@ -32,6 +35,7 @@ public record Line
     {
         List<String> words = Stream.of(string.split("\\s+"))
             .map(StringUtils::alphanumericOnly)
+            .map(String::toUpperCase)
             .toList();
         List<Syllable> syllables = _computeSyllables(words, dictionary);
         return new Line(words, syllables);
@@ -59,7 +63,7 @@ public record Line
         @Nonnull Dictionary dictionary
     ) throws NoPronunciationException
     {
-        List<List<Pronunciation>> pronunciations = words.stream()
+        List<Set<Pronunciation>> pronunciations = words.stream()
             .map(dictionary::getPronunciations)
             .toList();
 
@@ -73,7 +77,7 @@ public record Line
 
         return words.stream()
             .map(dictionary::getPronunciations)
-            .map(list -> list.get(0))
+            .map(set -> set.iterator().next())
             .map(Pronunciation::syllables)
             .flatMap(List::stream)
             .toList();
@@ -81,8 +85,7 @@ public record Line
 
     public boolean matches(@Nonnull Line line)
     {
-        if (!words().stream().map(String::toUpperCase).toList()
-            .equals(line.words().stream().map(String::toUpperCase).toList()))
+        if (!words().equals(line.words()))
         {
             return false;
         }

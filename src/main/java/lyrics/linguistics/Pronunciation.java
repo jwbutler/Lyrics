@@ -1,7 +1,5 @@
 package lyrics.linguistics;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import lyrics.Logging;
 
 import javax.annotation.CheckForNull;
@@ -10,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
+import static lyrics.utils.Preconditions.checkArgument;
 
 /**
  * Represents a particular pronunciation of a word.
@@ -75,7 +73,7 @@ public record Pronunciation
                 // emphasis for the current syllable
                 if (emphasis != null)
                 {
-                    syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), emphasis));
+                    syllables.add(new Syllable(phonemesInSyllable.reversed(), emphasis));
                     phonemesInSyllable = new ArrayList<>();
                 }
                 emphasis = phonemesWithEmphasis.get(index).emphasis();
@@ -89,7 +87,7 @@ public record Pronunciation
             index--;
         }
 
-        syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS)));
+        syllables.add(new Syllable(phonemesInSyllable.reversed(), Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS)));
         emphasis = null;
 
         // Now find any number of (consonant-vowel) syllables.
@@ -105,7 +103,7 @@ public record Pronunciation
                     // emphasis for the current syllable
                     if (emphasis != null)
                     {
-                        syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), emphasis));
+                        syllables.add(new Syllable(phonemesInSyllable.reversed(), emphasis));
                         phonemesInSyllable = new ArrayList<>();
                     }
                     emphasis = phonemesWithEmphasis.get(index).emphasis();
@@ -118,10 +116,10 @@ public record Pronunciation
                 phonemesInSyllable.add(phonemesWithEmphasis.get(index).phoneme());
                 index--;
             }
-            syllables.add(new Syllable(Lists.reverse(phonemesInSyllable), Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS)));
+            syllables.add(new Syllable(phonemesInSyllable.reversed(), Optional.ofNullable(emphasis).orElse(Emphasis.NO_STRESS)));
             emphasis = null;
         }
-        return Lists.reverse(syllables);
+        return syllables.reversed();
     }
 
     /**
@@ -134,7 +132,7 @@ public record Pronunciation
     @Nonnull
     private static PhonemeWithEmphasis _phonemeWithEmphasis(@Nonnull String string)
     {
-        Preconditions.checkArgument(string.matches("^[A-Z0-9]*$"));
+        checkArgument(string.matches("^[A-Z0-9]*$"));
         @CheckForNull Phoneme phoneme = Phoneme.fromString(string.replaceAll("[^A-Z]", ""));
         if (phoneme == null)
         {

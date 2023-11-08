@@ -3,7 +3,6 @@ package lyrics.readers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +28,7 @@ import org.apache.commons.csv.CSVParser;
  * @author jbutler
  * @since July 2018
  */
-public class SongLyricsReader
+public final class SongLyricsReader
 {
     public static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.builder().setSkipHeaderRecord(true).build();
     @Nonnull
@@ -43,7 +42,8 @@ public class SongLyricsReader
     @Nonnull
     public PoetryLineSupplier readFile(@Nonnull String filename)
     {
-        System.out.println("SongLyricsReader - Reading song lyrics...");
+        Logging.info("SongLyricsReader - Reading song lyrics...");
+
         try (
             BufferedReader reader = FileUtils.getBufferedReader(filename);
             CSVParser parser = new CSVParser(reader, CSV_FORMAT);

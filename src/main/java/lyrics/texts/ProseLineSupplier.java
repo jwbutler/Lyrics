@@ -1,9 +1,8 @@
 package lyrics.texts;
 
-import com.google.common.base.Preconditions;
+import lyrics.RhymeMap;
 import lyrics.Logging;
 import lyrics.NoPronunciationException;
-import lyrics.RhymeMap;
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
@@ -23,11 +22,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static lyrics.utils.Preconditions.checkArgument;
+
 /**
  * @author jwbutler
  * @since August 2018
  */
-public class ProseLineSupplier implements LineSupplier
+public final class ProseLineSupplier implements LineSupplier
 {
     @Nonnull
     private final Dictionary m_dictionary;
@@ -45,7 +46,7 @@ public class ProseLineSupplier implements LineSupplier
     {
         m_dictionary = dictionary;
         m_sentences = sentences;
-        m_rhymeMap = new RhymeMap(m_dictionary);
+        m_rhymeMap = RhymeMap.create(dictionary);
         m_linesByMeter = new HashMap<>();
     }
 
@@ -83,7 +84,7 @@ public class ProseLineSupplier implements LineSupplier
     @CheckForNull
     public Line getLine(@Nonnull List<Line> previousLines, @Nonnull Meter meter)
     {
-        Preconditions.checkArgument(!previousLines.isEmpty());
+        checkArgument(!previousLines.isEmpty());
 
         if (!m_linesByMeter.containsKey(meter))
         {
@@ -134,7 +135,7 @@ public class ProseLineSupplier implements LineSupplier
         return m_sentences.stream()
             .map(sentence -> _computeLinesForSentenceAndMeter(sentence, meter))
             .flatMap(List::stream)
-            .collect(Collectors.groupingBy(line -> line.words().getLast().toUpperCase()));
+            .collect(Collectors.groupingBy(line -> line.words().getLast()));
     }
 
     /**
@@ -165,7 +166,7 @@ public class ProseLineSupplier implements LineSupplier
 
                     List<Syllable> syllables = words.stream()
                         .map(m_dictionary::getPronunciations)
-                        .map(list -> list.get(0))
+                        .map(set -> set.iterator().next())
                         .map(Pronunciation::syllables)
                         .flatMap(List::stream)
                         .toList();

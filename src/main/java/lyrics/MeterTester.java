@@ -2,7 +2,6 @@ package lyrics;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.base.Preconditions;
 import lyrics.dictionaries.CMUDictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Line;
@@ -10,23 +9,22 @@ import lyrics.readers.SongLyricsReader;
 import lyrics.texts.LineSupplier;
 import lyrics.texts.PoetryLineSupplier;
 
+import static lyrics.utils.Preconditions.checkArgument;
+
 /**
  * @author jbutler
  * @since July 2018
  */
-public class MeterTester
+public final class MeterTester
 {
     @Nonnull
     private final LineSupplier m_text;
 
     public static void main(String[] args)
     {
-        long t1 = System.currentTimeMillis();
         CMUDictionary dictionary = new CMUDictionary();
 
         SongLyricsReader songLyricsReader = new SongLyricsReader(dictionary);
-        long t2 = System.currentTimeMillis();
-        System.out.println("Created dictionary in " + (t2 - t1) + " ms");
         PoetryLineSupplier songLyrics = songLyricsReader.readFile("songdata.csv");
 
         MeterTester meterTester = new MeterTester(songLyrics);
@@ -40,7 +38,7 @@ public class MeterTester
 
     public void doTest(@Nonnull Meter meter)
     {
-        Preconditions.checkArgument(!meter.isEmpty());
+        checkArgument(!meter.isEmpty());
         for (int i = 0; i < 10; i++)
         {
             Line line;

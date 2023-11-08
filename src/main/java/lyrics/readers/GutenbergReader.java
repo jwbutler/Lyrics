@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @author jbutler
  * @since July 2018
  */
-public class GutenbergReader
+public final class GutenbergReader
 {
     private static final String SENTENCE_ENDING_PUNCTUATION = "[\\.!\\?]";
     @Nonnull
@@ -73,7 +73,7 @@ public class GutenbergReader
     }
 
     @Nonnull
-    private List<String> _filterLines(@Nonnull List<String> allLines, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
+    private static List<String> _filterLines(@Nonnull List<String> allLines, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
     {
         if (lastLineBeforeStart == null && firstLineAfterEnd == null)
         {
@@ -106,7 +106,7 @@ public class GutenbergReader
             }
         }
 
-        return List.copyOf(allLines.subList(firstLineIndex, lastLineIndex + 1));
+        return allLines.subList(firstLineIndex, lastLineIndex + 1);
     }
 
     @Nonnull

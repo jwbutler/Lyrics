@@ -16,7 +16,7 @@ final class MeterImpl implements Meter
 
     MeterImpl(@Nonnull List<Emphasis> emphasisList)
     {
-        m_emphasisList = List.copyOf(emphasisList);
+        m_emphasisList = emphasisList;
     }
 
     @Override
@@ -63,5 +63,11 @@ final class MeterImpl implements Meter
     public boolean isEmpty()
     {
         return getNumSyllables() == 0;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return m_emphasisList.toString();
     }
 }

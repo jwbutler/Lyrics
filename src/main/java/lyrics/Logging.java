@@ -4,9 +4,11 @@ package lyrics;
  * @author jbutler
  * @since July 2018
  */
-public class Logging
+public final class Logging
 {
     private static final boolean DEBUG_ENABLED = false;
+    
+    private Logging() {}
 
     public static void debug(String s)
     {

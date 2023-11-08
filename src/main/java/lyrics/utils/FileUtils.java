@@ -9,7 +9,7 @@ import java.util.Optional;
  * @author jbutler
  * @since July 2018
  */
-public class FileUtils
+public final class FileUtils
 {
     private FileUtils()
     {
