@@ -1,24 +1,23 @@
 package lyrics.texts;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import lyrics.RhymeMap;
 import lyrics.dictionaries.Dictionary;
 import lyrics.meter.Meter;
 import lyrics.poetry.Line;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import static lyrics.utils.Preconditions.checkArgument;
 
 /**
  * A text consisting of a collection of discrete lines.
@@ -26,31 +25,30 @@ import java.util.stream.IntStream;
  * @author jbutler
  * @since July 2018
  */
-@Immutable
-public class PoetryLineSupplier implements LineSupplier
+public final class PoetryLineSupplier implements LineSupplier
 {
     @Nonnull
-    private final List<Line> m_lines;
+    private final Set<Line> m_lines;
     @Nonnull
     private final RhymeMap m_rhymeMap;
     /**
      * a map of (meter -> (last word -> lines))
      */
     @Nonnull
-    private final Map<Meter, Map<String, List<Line>>> m_linesByMeter;
+    private final Map<Meter, Map<String, Set<Line>>> m_linesByMeter;
 
-    public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull List<Line> lines)
+    public PoetryLineSupplier(@Nonnull Dictionary dictionary, @Nonnull Set<Line> lines)
     {
-        m_lines = ImmutableList.copyOf(lines);
-        m_rhymeMap = new RhymeMap(dictionary);
-        m_linesByMeter = new ConcurrentHashMap<>();
+        m_lines = lines;
+        m_rhymeMap = RhymeMap.create(dictionary);
+        m_linesByMeter = new HashMap<>();
     }
 
     @Override
     @CheckForNull
     public Line getLine(@Nonnull Meter meter)
     {
-        Map<String, List<Line>> matchingLineMap = _getLinesByMeter(meter);
+        Map<String, Set<Line>> matchingLineMap = _getLinesByMeter(meter);
 
         if (matchingLineMap.isEmpty())
         {
@@ -58,9 +56,9 @@ public class PoetryLineSupplier implements LineSupplier
         }
 
         List<Line> lines = matchingLineMap.values()
-            .parallelStream()
-            .flatMap(List::parallelStream)
-            .collect(Collectors.toList());
+            .stream()
+            .flatMap(Set::stream)
+            .toList();
 
         Random RNG = ThreadLocalRandom.current();
         int index = RNG.nextInt(lines.size());
@@ -71,10 +69,10 @@ public class PoetryLineSupplier implements LineSupplier
     @CheckForNull
     public Line getLine(@Nonnull List<Line> previousLines, @Nonnull Meter meter)
     {
-        Preconditions.checkArgument(!previousLines.isEmpty());
+        checkArgument(!previousLines.isEmpty());
 
         Line firstLine = previousLines.get(0);
-        String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
+        String lastWordOfFirstLine = firstLine.words().getLast();
         Set<String> rhymingWords = m_rhymeMap.getRhymes(lastWordOfFirstLine);
 
         if (rhymingWords.isEmpty())
@@ -82,17 +80,16 @@ public class PoetryLineSupplier implements LineSupplier
             return null;
         }
 
-        Map<String, List<Line>> lines = _getLinesByMeter(meter);
+        Map<String, Set<Line>> lines = _getLinesByMeter(meter);
 
         List<Line> matchingLines = lines.entrySet()
-            .parallelStream()
+            .stream()
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .flatMap(Set::stream)
+            .toList();
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
-            .parallel()
             .boxed()
             .collect(Collectors.toList());
 
@@ -102,10 +99,10 @@ public class PoetryLineSupplier implements LineSupplier
         for (int i : lineIndices)
         {
             Line line = matchingLines.get(i);
-            String lastWord = line.getWords().get(line.getWords().size() - 1);
-            boolean differentLastWord = previousLines.parallelStream()
-                .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
-            boolean matchesPreviousLine = previousLines.parallelStream()
+            String lastWord = line.words().getLast();
+            boolean differentLastWord = previousLines.stream()
+                .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.words().getLast()));
+            boolean matchesPreviousLine = previousLines.stream()
                 .anyMatch(line::matches);
 
             if (!matchesPreviousLine && differentLastWord)
@@ -120,15 +117,14 @@ public class PoetryLineSupplier implements LineSupplier
      * @return a map of (last word -> lines)
      */
     @Nonnull
-    private Map<String, List<Line>> _getLinesByMeter(@Nonnull Meter meter)
+    private Map<String, Set<Line>> _getLinesByMeter(@Nonnull Meter meter)
     {
         return m_linesByMeter.computeIfAbsent(meter, m ->
-        {
-            return m_lines.parallelStream()
+            m_lines.stream()
                 .filter(line -> m.fitsLineMeter(line.getMeter()))
                 .collect(Collectors.groupingBy(
-                    line -> line.getWords().get(line.getWords().size() - 1).toUpperCase()
-                ));
-        });
+                    line -> line.words().getLast(),
+                    Collectors.toSet()
+                )));
     }
 }

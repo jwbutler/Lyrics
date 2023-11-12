@@ -1,7 +1,7 @@
 package lyrics.readers;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.Logging;
+import lyrics.NoPronunciationException;
 import lyrics.texts.LineSupplier;
 import lyrics.texts.ProseLineSupplier;
 import lyrics.utils.FileUtils;
@@ -14,13 +14,14 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author jbutler
  * @since July 2018
  */
-public class GutenbergReader
+public final class GutenbergReader
 {
     private static final String SENTENCE_ENDING_PUNCTUATION = "[\\.!\\?]";
     @Nonnull
@@ -43,34 +44,36 @@ public class GutenbergReader
     {
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()
-            .parallel()
             .map(String::trim)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
-        List<Line> mappedLines = lines.stream()
-            .parallel()
+        Set<Line> mappedLines = lines.stream()
             .map(s ->
             {
                 try
                 {
-                    return new Line(s, m_dictionary);
+                    return Line.fromString(s, m_dictionary);
                 }
-                catch (Exception e)
+                catch (NoPronunciationException e)
                 {
-                    Logging.debug(e.getMessage(), e);
+                    return null;
+                }
+                catch (RuntimeException e)
+                {
+                    Logging.info(e.getMessage(), e);
                     return null;
                 }
             })
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
 
         return new PoetryLineSupplier(m_dictionary, mappedLines);
     }
 
     @Nonnull
-    private List<String> _filterLines(@Nonnull List<String> allLines, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
+    private static List<String> _filterLines(@Nonnull List<String> allLines, @CheckForNull String lastLineBeforeStart, @CheckForNull String firstLineAfterEnd)
     {
         if (lastLineBeforeStart == null && firstLineAfterEnd == null)
         {
@@ -103,7 +106,7 @@ public class GutenbergReader
             }
         }
 
-        return ImmutableList.copyOf(allLines.subList(firstLineIndex, lastLineIndex + 1));
+        return allLines.subList(firstLineIndex, lastLineIndex + 1);
     }
 
     @Nonnull
@@ -111,16 +114,15 @@ public class GutenbergReader
     {
         List<String> allLines = FileUtils.getBufferedReader(filename)
             .lines()
-            .parallel()
             .map(String::trim)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> lines = _filterLines(allLines, lastLineBeforeStart, firstLineAfterEnd);
 
         List<String> sentences = Arrays.stream(String.join(" ", lines).split(SENTENCE_ENDING_PUNCTUATION))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
-            .collect(Collectors.toList());
+            .toList();
 
         return new ProseLineSupplier(m_dictionary, sentences);
     }

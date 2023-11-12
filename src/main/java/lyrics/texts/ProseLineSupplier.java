@@ -1,9 +1,8 @@
 package lyrics.texts;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import lyrics.Logging;
 import lyrics.RhymeMap;
+import lyrics.Logging;
+import lyrics.NoPronunciationException;
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
@@ -12,21 +11,24 @@ import lyrics.poetry.Line;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static lyrics.utils.Preconditions.checkArgument;
 
 /**
  * @author jwbutler
  * @since August 2018
  */
-public class ProseLineSupplier implements LineSupplier
+public final class ProseLineSupplier implements LineSupplier
 {
     @Nonnull
     private final Dictionary m_dictionary;
@@ -44,8 +46,8 @@ public class ProseLineSupplier implements LineSupplier
     {
         m_dictionary = dictionary;
         m_sentences = sentences;
-        m_rhymeMap = new RhymeMap(m_dictionary);
-        m_linesByMeter = new ConcurrentHashMap<>();
+        m_rhymeMap = RhymeMap.create(dictionary);
+        m_linesByMeter = new HashMap<>();
     }
 
     @Override
@@ -58,9 +60,9 @@ public class ProseLineSupplier implements LineSupplier
         }
         List<Line> lines = m_linesByMeter.getOrDefault(meter, Collections.emptyMap())
             .values()
-            .parallelStream()
-            .flatMap(List::parallelStream)
-            .collect(Collectors.toList());
+            .stream()
+            .flatMap(List::stream)
+            .toList();
 
         if (lines.isEmpty())
         {
@@ -82,7 +84,7 @@ public class ProseLineSupplier implements LineSupplier
     @CheckForNull
     public Line getLine(@Nonnull List<Line> previousLines, @Nonnull Meter meter)
     {
-        Preconditions.checkArgument(!previousLines.isEmpty());
+        checkArgument(!previousLines.isEmpty());
 
         if (!m_linesByMeter.containsKey(meter))
         {
@@ -90,32 +92,30 @@ public class ProseLineSupplier implements LineSupplier
         }
 
         Line firstLine = previousLines.get(0);
-        String lastWordOfFirstLine = firstLine.getWords().get(firstLine.getWords().size() - 1);
+        String lastWordOfFirstLine = firstLine.words().get(firstLine.words().size() - 1);
         Set<String> rhymingWords = m_rhymeMap.getRhymes(lastWordOfFirstLine);
 
         List<Line> matchingLines = m_linesByMeter.getOrDefault(meter, Collections.emptyMap())
             .entrySet()
-            .parallelStream()
+            .stream()
             .filter(e -> rhymingWords.contains(e.getKey()))
             .map(Map.Entry::getValue)
-            .flatMap(List::parallelStream)
-            .collect(Collectors.toList());
+            .flatMap(List::stream)
+            .toList();
 
         List<Integer> lineIndices = IntStream.range(0, matchingLines.size())
-            .parallel()
             .boxed()
             .collect(Collectors.toList());
 
         Collections.shuffle(lineIndices);
 
-        // Switch to a sequential loop so we don't have to evaluate every line
         for (int i : lineIndices)
         {
             Line line = matchingLines.get(i);
-            String lastWord = line.getWords().get(line.getWords().size() - 1);
-            boolean differentLastWord = previousLines.parallelStream()
-                .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.getWords().get(rhymingLine.getWords().size() - 1)));
-            boolean matchesPreviousLine = previousLines.parallelStream()
+            String lastWord = line.words().getLast();
+            boolean differentLastWord = previousLines.stream()
+                .noneMatch(rhymingLine -> lastWord.equalsIgnoreCase(rhymingLine.words().getLast()));
+            boolean matchesPreviousLine = previousLines.stream()
                 .anyMatch(line::matches);
 
             if (!matchesPreviousLine && differentLastWord)
@@ -132,10 +132,10 @@ public class ProseLineSupplier implements LineSupplier
     @Nonnull
     private Map<String, List<Line>> _computeLinesForMeter(@Nonnull Meter meter)
     {
-        return m_sentences.parallelStream()
+        return m_sentences.stream()
             .map(sentence -> _computeLinesForSentenceAndMeter(sentence, meter))
-            .flatMap(List::parallelStream)
-            .collect(Collectors.groupingBy(line -> line.getWords().get(line.getWords().size() - 1).toUpperCase()));
+            .flatMap(List::stream)
+            .collect(Collectors.groupingBy(line -> line.words().getLast()));
     }
 
     /**
@@ -144,18 +144,18 @@ public class ProseLineSupplier implements LineSupplier
     @Nonnull
     private List<Line> _computeLinesForSentenceAndMeter(@Nonnull String sentence, @Nonnull Meter meter)
     {
-        ImmutableList.Builder<Line> builder = new ImmutableList.Builder<>();
+        List<Line> lines = new ArrayList<>();
         try
         {
-            Line sentenceAsLine = new Line(sentence, m_dictionary);
+            Line sentenceAsLine = Line.fromString(sentence, m_dictionary);
 
             // compute line starting from the first word
-            for (int i = 0; i < sentenceAsLine.getWords().size(); i++)
+            for (int i = 0; i < sentenceAsLine.words().size(); i++)
             {
-                for (int j = i + 1; j < sentenceAsLine.getWords().size(); j++)
+                for (int j = i + 1; j < sentenceAsLine.words().size(); j++)
                 {
                     // subList's second parameter is exclusive, so this is up to and including j
-                    List<String> words = sentenceAsLine.getWords()
+                    List<String> words = sentenceAsLine.words()
                         .subList(i, j + 1);
 
                     // if any words aren't in the dictionary, give up
@@ -166,25 +166,28 @@ public class ProseLineSupplier implements LineSupplier
 
                     List<Syllable> syllables = words.stream()
                         .map(m_dictionary::getPronunciations)
-                        .map(list -> list.get(0))
-                        .map(Pronunciation::getSyllables)
+                        .map(set -> set.iterator().next())
+                        .map(Pronunciation::syllables)
                         .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                        .toList();
                     Meter lineMeter = Meter.forSyllables(syllables);
 
                     if (meter.fitsLineMeter(lineMeter))
                     {
-                        builder.add(new Line(String.join(" ", words), m_dictionary));
+                        lines.add(Line.fromString(String.join(" ", words), m_dictionary));
                         break;
                     }
                 }
             }
         }
-        catch (Exception e)
+        catch (NoPronunciationException e)
         {
             // just skip it and continue
-            Logging.debug("Error computing lines: ", e);
         }
-        return builder.build();
+        catch (RuntimeException e)
+        {
+            Logging.error("Error computing lines: ", e);
+        }
+        return lines;
     }
 }

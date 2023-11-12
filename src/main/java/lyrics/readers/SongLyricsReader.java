@@ -1,22 +1,25 @@
 package lyrics.readers;
 
-import lyrics.Logging;
-import lyrics.texts.PoetryLineSupplier;
-import lyrics.dictionaries.Dictionary;
-import lyrics.poetry.Line;
-import lyrics.utils.FileUtils;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-
-import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+
+import lyrics.Logging;
+import lyrics.NoPronunciationException;
+import lyrics.dictionaries.Dictionary;
+import lyrics.poetry.Line;
+import lyrics.texts.PoetryLineSupplier;
+import lyrics.utils.FileUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 
 /**
  * Reader interface intended to parse this file:
@@ -25,8 +28,9 @@ import java.util.stream.Stream;
  * @author jbutler
  * @since July 2018
  */
-public class SongLyricsReader
+public final class SongLyricsReader
 {
+    public static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.builder().setSkipHeaderRecord(true).build();
     @Nonnull
     private final Dictionary m_dictionary;
 
@@ -38,42 +42,49 @@ public class SongLyricsReader
     @Nonnull
     public PoetryLineSupplier readFile(@Nonnull String filename)
     {
-        System.out.println("SongLyricsReader - Reading song lyrics...");
+        Logging.info("SongLyricsReader - Reading song lyrics...");
+
         try (
             BufferedReader reader = FileUtils.getBufferedReader(filename);
-            CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withSkipHeaderRecord())
+            CSVParser parser = new CSVParser(reader, CSV_FORMAT);
+            var executor = Executors.newVirtualThreadPerTaskExecutor()
         )
         {
             long t1 = System.currentTimeMillis();
-            AtomicInteger numErrors = new AtomicInteger(0);
+            var numErrors = new AtomicInteger(0);
 
-            List<Line> lines = parser.getRecords()
-                .parallelStream()
-                .map(r -> r.get(3))
-                .flatMap(this::_splitToLines)
-                .parallel()
-                .map(line ->
-                {
-                    try
+            Set<Line> lines = executor.submit(() ->
+                parser.getRecords()
+                    .parallelStream()
+                    .map(r -> r.get(3))
+                    .flatMap(SongLyricsReader::_splitToLines)
+                    .map(line ->
                     {
-                        return new Line(line, m_dictionary);
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.debug(e.getMessage(), e);
-                        numErrors.incrementAndGet();
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
+                        try
+                        {
+                            return Line.fromString(line, m_dictionary);
+                        }
+                        catch (NoPronunciationException e)
+                        {
+                            // expected, kinda
+                            return null;
+                        }
+                        catch (RuntimeException e)
+                        {
+                            Logging.debug(e.getMessage(), e);
+                            numErrors.incrementAndGet();
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet())
+            ).get();
 
             long t2 = System.currentTimeMillis();
             Logging.info("SongLyricsReader - Read " + lines.size() + " lines in " + (t2-t1) + " ms with " + numErrors.get() + " errors");
             return new PoetryLineSupplier(m_dictionary, lines);
         }
-        catch (IOException e)
+        catch (IOException | InterruptedException | ExecutionException e)
         {
             // Not much point in continuing
             throw new RuntimeException(e);
@@ -81,7 +92,7 @@ public class SongLyricsReader
     }
 
     @Nonnull
-    private Stream<String> _splitToLines(@Nonnull String string)
+    private static Stream<String> _splitToLines(@Nonnull String string)
     {
         return Arrays.stream(string.split("\\s*\n\\s*"));
     }

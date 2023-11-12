@@ -1,6 +1,5 @@
 package lyrics.meter;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.linguistics.Emphasis;
 
 import javax.annotation.Nonnull;
@@ -10,14 +9,14 @@ import java.util.List;
  * @author jwbutler
  * @since November 2019
  */
-class MeterImpl implements Meter
+final class MeterImpl implements Meter
 {
     @Nonnull
     private final List<Emphasis> m_emphasisList;
 
     MeterImpl(@Nonnull List<Emphasis> emphasisList)
     {
-        m_emphasisList = ImmutableList.copyOf(emphasisList);
+        m_emphasisList = emphasisList;
     }
 
     @Override
@@ -44,14 +43,14 @@ class MeterImpl implements Meter
         for (int i = 0; i < this.getNumSyllables(); i++)
         {
             // Don't allow a strong syllable in a weak position
-            if (lineMeter.getEmphasis(i) == Emphasis.STRONG && this.getEmphasis(i) != Emphasis.STRONG)
+            if (lineMeter.getEmphasis(i) != Emphasis.NO_STRESS && this.getEmphasis(i) == Emphasis.NO_STRESS)
             {
                 return false;
             }
             // Additionally, don't allow a weak syllable in a strong position at the end of the line
             if (i == this.getNumSyllables() - 1)
             {
-                if (lineMeter.getEmphasis(i) == Emphasis.WEAK && this.getEmphasis(i) == Emphasis.STRONG)
+                if (lineMeter.getEmphasis(i) == Emphasis.NO_STRESS && this.getEmphasis(i) != Emphasis.NO_STRESS)
                 {
                     return false;
                 }
@@ -64,5 +63,11 @@ class MeterImpl implements Meter
     public boolean isEmpty()
     {
         return getNumSyllables() == 0;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return m_emphasisList.toString();
     }
 }

@@ -1,6 +1,5 @@
 package lyrics.meter;
 
-import com.google.common.annotations.VisibleForTesting;
 import lyrics.linguistics.Emphasis;
 import lyrics.linguistics.Syllable;
 
@@ -24,8 +23,8 @@ public interface Meter
     static Meter forSyllables(@Nonnull List<Syllable> syllables)
     {
         List<Emphasis> emphasisList = syllables.stream()
-            .map(Syllable::getEmphasis)
-            .collect(Collectors.toList());
+            .map(Syllable::emphasis)
+            .toList();
         return new MeterImpl(emphasisList);
     }
 
@@ -33,8 +32,8 @@ public interface Meter
     static Meter of(int... emphasisValues)
     {
         List<Emphasis> emphasisList = Arrays.stream(emphasisValues)
-            .mapToObj(i -> i == 1 ? Emphasis.STRONG : Emphasis.WEAK)
-            .collect(Collectors.toList());
+            .mapToObj(Emphasis::fromValue)
+            .toList();
 
         return new MeterImpl(emphasisList);
     }

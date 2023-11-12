@@ -1,6 +1,5 @@
 package lyrics.utils;
 
-import com.google.common.collect.ImmutableList;
 import lyrics.linguistics.Phoneme;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
@@ -9,30 +8,34 @@ import lyrics.dictionaries.Dictionary;
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static lyrics.utils.StringUtils.isUpperCase;
 
 /**
  * @author jbutler
  * @since July 2018
  */
-public class RhymeUtils
+public final class RhymeUtils
 {
-    /**
-     * Two words rhyme if:
-     */
+    private RhymeUtils() {}
+
     public static boolean rhymesWith(@Nonnull Pronunciation firstWord, @Nonnull Pronunciation secondWord)
     {
-        int numSyllablesToMatch = Math.min(firstWord.getSyllables().size(), 2);
-        if (secondWord.getSyllables().size() < numSyllablesToMatch)
+        int numSyllablesToMatch = Math.min(firstWord.syllables().size(), 2);
+        if (secondWord.syllables().size() < numSyllablesToMatch)
         {
             return false;
         }
 
         for (int i = 0; i < numSyllablesToMatch; i++)
         {
-            int firstIndex = firstWord.getSyllables().size() - 1 - i;
-            int secondIndex = secondWord.getSyllables().size() - 1 - i;
-            Syllable firstSyllable = firstWord.getSyllables().get(firstIndex);
-            Syllable secondSyllable = secondWord.getSyllables().get(secondIndex);
+            int firstIndex = firstWord.syllables().size() - 1 - i;
+            int secondIndex = secondWord.syllables().size() - 1 - i;
+            Syllable firstSyllable = firstWord.syllables().get(firstIndex);
+            Syllable secondSyllable = secondWord.syllables().get(secondIndex);
 
             // Ignore initial consonants if this is the first syllable.
             if (i == (numSyllablesToMatch - 1))
@@ -55,7 +58,7 @@ public class RhymeUtils
 
     public static boolean rhymesWith(@Nonnull Syllable firstSyllable, @Nonnull Syllable secondSyllable)
     {
-        return rhymesWith(firstSyllable.getPhonemes(), secondSyllable.getPhonemes());
+        return rhymesWith(firstSyllable.phonemes(), secondSyllable.phonemes());
     }
 
     public static boolean rhymesWith(@Nonnull List<Phoneme> firstPhonemes, @Nonnull List<Phoneme> secondPhonemes)
@@ -75,35 +78,43 @@ public class RhymeUtils
 
     /**
      * TODO move me?
-     * @param phonemes
-     * @return
      */
     @Nonnull
     public static List<Phoneme> stripFinalS(@Nonnull List<Phoneme> phonemes)
     {
-        if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.get(phonemes.size() - 1)))
+        if (EnumSet.of(Phoneme.S, Phoneme.Z).contains(phonemes.getLast()))
         {
-            return ImmutableList.copyOf(phonemes.subList(0, phonemes.size() - 1));
+            return phonemes.subList(0, phonemes.size() - 1);
         }
-        return ImmutableList.copyOf(phonemes);
+        return phonemes;
     }
 
     @Nonnull
     private static List<Phoneme> _removeInitialConsonants(@Nonnull Syllable syllable)
     {
-        List<Phoneme> phonemes = syllable.getPhonemes();
+        List<Phoneme> phonemes = syllable.phonemes();
         int index = 0;
         while (!phonemes.get(index).isVowel())
         {
             index++;
         }
-        return ImmutableList.copyOf(phonemes.subList(index, phonemes.size()));
+        return phonemes.subList(index, phonemes.size());
     }
 
+    /**
+     * @param first Must be uppercase
+     * @param second Must be uppercase
+     */
     public static boolean anyPronunciationsRhyme(@Nonnull String first, @Nonnull String second, @Nonnull Dictionary dictionary)
     {
-        List<Pronunciation> firstList = dictionary.getPronunciations(first);
-        List<Pronunciation> secondList = dictionary.getPronunciations(second);
-        return firstList.parallelStream().anyMatch(p -> secondList.parallelStream().anyMatch(q -> rhymesWith(p, q)));
+        assert isUpperCase(first);
+        assert isUpperCase(second);
+
+        Set<Pronunciation> firstSet = dictionary.getPronunciations(first);
+        Set<Pronunciation> secondSet = dictionary.getPronunciations(second);
+
+        return firstSet.stream().anyMatch(p -> 
+            secondSet.stream().anyMatch(q -> rhymesWith(p, q))
+        );
     }
 }

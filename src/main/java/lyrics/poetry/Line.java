@@ -1,100 +1,94 @@
 package lyrics.poetry;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+
+import lyrics.NoPronunciationException;
 import lyrics.dictionaries.Dictionary;
 import lyrics.linguistics.Pronunciation;
 import lyrics.linguistics.Syllable;
 import lyrics.meter.Meter;
 import lyrics.utils.StringUtils;
 
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * @author jbutler
  * @since July 2018
+ * 
+ * @param words All upper-case
  */
-public class Line
+public record Line
+(
+    @Nonnull List<String> words,
+    @Nonnull List<Syllable> syllables
+)
 {
-    @Nonnull
-    private final List<String> m_words;
-    @Nonnull
-    private final List<Syllable> m_syllables;
-
     /**
      * @param string A space-separated list of words
-     * @throws Exception
      */
-    public Line(@Nonnull String string, @Nonnull Dictionary dictionary) throws Exception
-    {
-        m_words = ImmutableList.copyOf(Stream.of(string.split("\\s+"))
-            .map(StringUtils::alphanumericOnly)
-            .collect(Collectors.toList()));
-        m_syllables = _computeSyllables(m_words, dictionary);
-    }
-
     @Nonnull
-    public List<String> getWords()
+    public static Line fromString(
+        @Nonnull String string,
+        @Nonnull Dictionary dictionary
+    ) throws NoPronunciationException
     {
-        return m_words;
+        List<String> words = Stream.of(string.split("\\s+"))
+            .map(StringUtils::alphanumericOnly)
+            .map(String::toUpperCase)
+            .toList();
+        List<Syllable> syllables = _computeSyllables(words, dictionary);
+        return new Line(words, syllables);
     }
 
     @Override
     @Nonnull
     public String toString()
     {
-        return String.join(" ", m_words);
+        return String.join(" ", words());
     }
 
     @Nonnull
     public Meter getMeter()
     {
-        return Meter.forSyllables(m_syllables);
+        return Meter.forSyllables(syllables());
     }
 
     /**
-     * @throws IllegalStateException if a word doesn't have a pronunciation in the dictionary
+     * @throws NoPronunciationException if a word doesn't have a pronunciation in the dictionary
      */
     @Nonnull
-    private static List<Syllable> _computeSyllables(@Nonnull List<String> words, @Nonnull Dictionary dictionary) throws Exception
+    private static List<Syllable> _computeSyllables(
+        @Nonnull List<String> words,
+        @Nonnull Dictionary dictionary
+    ) throws NoPronunciationException
     {
-        List<List<Pronunciation>> pronunciations = words.stream()
+        List<Set<Pronunciation>> pronunciations = words.stream()
             .map(dictionary::getPronunciations)
-            .collect(Collectors.toList());
+            .toList();
 
         for (int i = 0; i < words.size(); i++)
         {
             if (pronunciations.get(i).isEmpty())
             {
-                throw new IllegalStateException("No pronunciations found for " + words.get(i));
+                throw new NoPronunciationException(words.get(i));
             }
         }
 
         return words.stream()
             .map(dictionary::getPronunciations)
-            .map(list -> list.get(0))
-            .map(Pronunciation::getSyllables)
+            .map(set -> set.iterator().next())
+            .map(Pronunciation::syllables)
             .flatMap(List::stream)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     public boolean matches(@Nonnull Line line)
     {
-        if (!m_words.stream().map(String::toUpperCase).collect(Collectors.toList())
-            .equals(line.m_words.stream().map(String::toUpperCase).collect(Collectors.toList())))
+        if (!words().equals(line.words()))
         {
             return false;
         }
-        return m_syllables.equals(line.m_syllables);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = m_words.hashCode();
-        result = 31 * result + m_syllables.hashCode();
-        return result;
+        return syllables().equals(line.syllables());
     }
 }
