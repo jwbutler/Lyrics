@@ -18,6 +18,7 @@ application {
 
 tasks.withType(JavaExec) {
     enableAssertions = true
+    maxHeapSize = '2g'
 }
 
 tasks.named('test') {
