@@ -24,7 +24,7 @@ import lyrics.texts.LineSupplier;
 public final class LyricsApp
 {
     private static final SongPattern DEFAULT_PATTERN = new SongPattern(List.of(StanzaPatterns.SPACE_DAGGER), 100);
-    public static final int PORT = 7070;
+    public static final int PORT = 80;
 
     @Nonnull
     private final Dictionary dictionary;
